@@ -1,0 +1,20 @@
+.chat-container {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+}
+
+.message-list {
+  height: calc(100vh - 41px);
+}
+
+
+.sidebar {
+  background: #dfdfe9;
+  height: calc(100vh);
+}
+
+.sidebar-top {
+  display: flex;
+  justify-content: space-between;
+  margin: 8px;
+}
