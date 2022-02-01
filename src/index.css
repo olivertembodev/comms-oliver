@@ -1,6 +1,9 @@
 :root {
   --primary: #8731e8;
 }
+* {
+  box-sizing: border-box;
+}
 
 body {
   margin: 0;
@@ -13,7 +16,7 @@ button {
   font-family: 'Poppins', sans-serif;
 }
 
-input::placeholder {
+input::placeholder, textarea::placeholder {
   color: #B5B5B5;
 }
 

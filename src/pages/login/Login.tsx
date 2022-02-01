@@ -1,10 +1,20 @@
 import { useEffect } from 'react';
+import { styled } from '../../lib/stitches.config';
 import { useNavigate } from 'react-router-dom';
-import '../../styles/form.css';
 import { useSignInWithGoogle } from 'react-firebase-hooks/auth';
 import { auth, firestore } from 'lib/firebase';
-import Button from '@mui/material/Button';
 import { setDoc, doc } from 'firebase/firestore';
+import Button from '../../components/shared/Button';
+
+const Wrapper = styled('div', {
+  container: 'none',
+  minHeight: '100vh',
+
+})
+const Form = styled('form', {
+  background: '$primary',
+  container: '480px',  
+});
 
 const Login = () => {
   const navigate = useNavigate();
@@ -28,15 +38,13 @@ const Login = () => {
   };
 
   return (
-    <>
-      <form onSubmit={handleSubmit} className="form-container">
-        <div className="button-wrapper">
-          <Button fullWidth variant="contained" type="submit" disabled={loading}>
+    <Wrapper>
+      <Form onSubmit={handleSubmit}>
+          <Button type="submit" disabled={loading}>
             Login with Google
           </Button>
-        </div>
-      </form>
-    </>
+      </Form>
+    </Wrapper>
   );
 };
 
