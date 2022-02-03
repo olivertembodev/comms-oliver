@@ -1,4 +1,5 @@
-import { collection, arrayRemove, updateDoc, doc } from 'firebase/firestore';
+/* eslint-disable array-callback-return */
+import { collection, doc, query, orderBy, deleteDoc } from 'firebase/firestore';
 import { firestore } from 'lib/firebase';
 import { auth } from 'lib/firebase';
 import { useEffect, useState } from 'react';
@@ -7,44 +8,47 @@ import { useCollection } from 'react-firebase-hooks/firestore';
 
 export default function useInbox() {
   const [user] = useAuthState(auth);
-  const [messages, setMessages] = useState([]);
   const [results, setResults] = useState([]);
+  const [messagesInInbox, setMessagesInInbox] = useState(0);
 
-  const col = collection(firestore, `users`, `${user?.uid ?? 'user'}`, `inbox`);
+  const orderInbox = orderBy('time', 'desc');
+  const col = query(
+    collection(firestore, `users`, `${user?.uid ?? 'user'}`, `inbox`),
+    orderInbox,
+  );
 
   const [value, loading] = useCollection(col);
-
   useEffect(() => {
     if (value?.docs.length) {
-      const results = value?.docs?.map((doc) => ({
-        id: doc.id,
-        messages: doc.data().messages,
-      }));
+      let results = [];
+      value?.docs?.map((doc) => {
+        if (!doc.data().isDone) {
+          results.push({ id: doc.id, ...doc.data() });
+        }
+      });
       setResults(results);
-      if (results?.length) {
-        setMessages(results[0].messages);
-      }
+      setMessagesInInbox(results.length);
     }
   }, [value]);
 
   const markMessageAsDone = async (
     e: React.MouseEvent,
-    item: object,
+    item: { id: string },
     index: number,
   ) => {
     e.preventDefault();
     e.stopPropagation();
-    let tempMessages = [...messages];
-    tempMessages.splice(index, 1);
-    setMessages([...tempMessages]);
-    await updateDoc(doc(firestore, 'users', user.uid, 'inbox', user.uid), {
-      messages: arrayRemove(item),
-    });
+    let messages = [...results];
+    messages[index].isDone = true;
+    messages.splice(index, 1);
+    setResults([...messages]);
+    setMessagesInInbox(messagesInInbox - 1);
+    await deleteDoc(doc(firestore, 'users', user.uid, 'inbox', item.id));
   };
   return {
     loading,
     inbox: results || [],
-    messages,
+    messagesInInbox,
     markMessageAsDone,
   };
 }

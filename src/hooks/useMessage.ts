@@ -16,15 +16,17 @@ export default function useMessage() {
   const addCol = collection(firestore, `channels`, `domain`, `${domain.replace("@","")}`, channel, "posts", post, "messages")
   const [value, loading] = useCollection(col)
   
-  const create = async (text:string) => {
+  const create = async (text:string, subject: string) => {
     try {
       const docRef = await addDoc(addCol, {
         text,
         userId: user.uid,
         time: serverTimestamp(),
+        subject,
         user: {
           name: user.displayName,
           email: user.email,
+          photoURL: user.photoURL,
         }
       });
 

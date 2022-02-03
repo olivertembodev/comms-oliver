@@ -31,9 +31,6 @@ const Login = () => {
               photoURL: user.user.photoURL,
               domain: user.user.email.split("@")[1]
             })
-            setDoc(doc(firestore, 'users', user.user.uid, 'inbox', user.user.uid), {
-              messages: [],
-            });
           }
         })
         const split = user.user.email.split("@")

@@ -81,7 +81,7 @@ export default function Container({ children }) {
   const params = useParams();
   const domain = params.domain;
   const [user, loading] = useAuthState(auth);
-  const { inbox } = useInbox();
+  const { messagesInInbox } = useInbox();
   useEffect(() => {
     if (!loading && !user) {
       navigate('/');
@@ -110,7 +110,7 @@ export default function Container({ children }) {
         </TopBar>
         <LinkWrapper>
           <Link to={`/${domain}/inbox/${user?.uid}`}>
-            Inbox - { inbox?.length ? inbox[0].messages.length : 0 }
+            Inbox - {messagesInInbox ?? '0'}
           </Link>
         </LinkWrapper>
         <ChannelList />

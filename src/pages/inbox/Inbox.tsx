@@ -79,20 +79,20 @@ const TextWrapper = styled('div', {
   width: '20%',
 });
 const EmptyMessage = styled('div', {
-    height: '60vh',
-    width: '100%',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    '& > p': {
-        fontSize: '24px',
-        fontWeight: '600',
-        lineHeight: '24px',
-    }
-})
+  height: '60vh',
+  width: '100%',
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+  '& > p': {
+    fontSize: '24px',
+    fontWeight: '600',
+    lineHeight: '24px',
+  },
+});
 
 export default function Inbox() {
-  const { messages, markMessageAsDone } = useInbox();
+  const { inbox, markMessageAsDone, loading } = useInbox();
   return (
     <Container>
       <div>
@@ -100,10 +100,12 @@ export default function Inbox() {
           <Heading3>Inbox</Heading3>
         </Wrapper>
         <List>
-          {messages?.length
-            ? messages.map((item, index) => (
+          {inbox?.length ? (
+            inbox.map((item, index) => {
+              if (item.isDone) return null;
+              return (
                 <ListItem key={index}>
-                  <Link to={`/${item.domain}/${item.channel}/${item.post}`}>
+                  <Link to={`/@${item.domain}/${item.channel}/${item.post}`}>
                     <ListItemTextWrapper>
                       <ListWrapper>
                         {item.user.photoURL ? (
@@ -123,15 +125,22 @@ export default function Inbox() {
                         <SecondaryText>{item.message}</SecondaryText>
                       </TextWrapper>
                       <div>
-                        <Button onClick={e => markMessageAsDone(e, item, index)}>Mark as done</Button>
+                        <Button
+                          onClick={(e) => markMessageAsDone(e, item, index)}
+                        >
+                          Mark as done
+                        </Button>
                       </div>
                     </ListItemTextWrapper>
                   </Link>
                 </ListItem>
-              ))
-            : <EmptyMessage>
-                <p>You have reached inbox 0!</p>
-                </EmptyMessage>}
+              );
+            })
+          ) : (
+            <EmptyMessage>
+              {!loading ? <p>You have reached inbox 0!</p> : null}
+            </EmptyMessage>
+          )}
         </List>
       </div>
     </Container>

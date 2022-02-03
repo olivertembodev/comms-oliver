@@ -6,7 +6,6 @@ import useUser from 'hooks/useUser';
 import useSinglePost from 'hooks/useSinglePost';
 import Button from '../../components/shared/Button';
 import { Form, InputField } from '../../components/shared/Form';
-import useUsers from 'hooks/useUsers';
 import { useEffect, useRef } from 'react';
 
 const Wrapper = styled('div', {
@@ -73,21 +72,19 @@ export default function Message() {
   const { value } = useSinglePost();
   const { results, create } = useMessage();
   const messagesContainerRef = useRef(null);
-  const { sendNotification } = useUsers();
   const { user } = useUser();
 
   const scrollToBottom = () => {
     messagesContainerRef.current.scrollTo(
       0,
-      messagesContainerRef.current.scrollHeight + 2000,
+      messagesContainerRef.current.scrollHeight + 20000,
     );
   };
 
   const { values, handleChange, handleSubmit } = useFormik({
     initialValues: { text: '' },
     onSubmit: (values, { resetForm }) => {
-      create(values.text);
-      sendNotification(value?.subject ?? 'Empty Message', values.text);
+      create(values.text, value?.subject);
       resetForm();
       scrollToBottom();
     },
