@@ -3,9 +3,11 @@ import { useEffect } from 'react';
 import { styled } from '../lib/stitches.config';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuthState } from 'react-firebase-hooks/auth';
+import {Link} from 'react-router-dom';
 import { auth } from 'lib/firebase';
 import ChannelList from 'components/ChannelList';
 import { signOut } from 'firebase/auth';
+import useInbox from 'hooks/useInbox';
 
 const Wrapper = styled('div', {
   container: 'none',
@@ -30,6 +32,22 @@ const TopBar = styled('div', {
   justifyContent: 'space-between',
   alignItems: 'center',
   paddingX: '12px',
+})
+const LinkWrapper = styled('div', {
+  width: '100%',
+  paddingX: '12px',
+  marginTop: '12px',
+  paddingY: '10px',
+  '& > a': {
+    textDecoration: 'none',
+    fontSize: '18px',
+    fontWeight: '500',
+    lineHeight: '16px',
+    color: '$secondary',
+  },
+  '&:hover': {
+    backgroundColor: 'rgba(0, 0, 0, 0.04)'
+  }
 })
 const Eyebrow = styled('p', {
   fontSize: '16px',
@@ -63,7 +81,7 @@ export default function Container({ children }) {
   const params = useParams();
   const domain = params.domain;
   const [user, loading] = useAuthState(auth);
-
+  const { messagesInInbox } = useInbox();
   useEffect(() => {
     if (!loading && !user) {
       navigate('/');
@@ -78,7 +96,6 @@ export default function Container({ children }) {
     signOut(auth);
     navigate('/');
   };
-
   return (
     <Wrapper>
       <SideBar>
@@ -91,6 +108,11 @@ export default function Container({ children }) {
             Logout
           </LogoutButton>
         </TopBar>
+        <LinkWrapper>
+          <Link to={`/${domain}/inbox/${user?.uid}`}>
+            Inbox - {messagesInInbox ?? '0'}
+          </Link>
+        </LinkWrapper>
         <ChannelList />
       </SideBar>
       <ChildrenWrapper>{children}</ChildrenWrapper>

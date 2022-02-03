@@ -6,6 +6,7 @@ import useUser from 'hooks/useUser';
 import useSinglePost from 'hooks/useSinglePost';
 import Button from '../../components/shared/Button';
 import { Form, InputField } from '../../components/shared/Form';
+import { useEffect, useRef } from 'react';
 
 const Wrapper = styled('div', {
   paddingX: '16px',
@@ -41,6 +42,9 @@ const List = styled('ul', {
   marginTop: '32px',
   borderBottom: '1px solid rgba(0, 0, 0, 0.12)',
   paddingY: '4px',
+  maxHeight: 'calc(100vh - 390px)',
+  overflowY: 'auto',
+  scrollBehavior: 'smooth',
 });
 
 const ListItem = styled('li', {
@@ -67,15 +71,30 @@ const SecondaryText = styled('p', {
 export default function Message() {
   const { value } = useSinglePost();
   const { results, create } = useMessage();
+  const messagesContainerRef = useRef(null);
   const { user } = useUser();
+
+  const scrollToBottom = () => {
+    messagesContainerRef.current.scrollTo(
+      0,
+      messagesContainerRef.current.scrollHeight + 20000,
+    );
+  };
 
   const { values, handleChange, handleSubmit } = useFormik({
     initialValues: { text: '' },
     onSubmit: (values, { resetForm }) => {
-      create(values.text);
+      create(values.text, value?.subject);
       resetForm();
+      scrollToBottom();
     },
   });
+
+  useEffect(() => {
+    if (messagesContainerRef?.current) {
+      scrollToBottom();
+    }
+  }, [results]);
 
   return (
     <Container>
@@ -85,7 +104,7 @@ export default function Message() {
           <SubHeading>Body: {value?.body}</SubHeading>
         </Wrapper>
         <Heading5>Message</Heading5>
-        <List>
+        <List ref={messagesContainerRef}>
           {results.map((item) => (
             <ListItem key={item.id}>
               <ListItemTextWrapper>

@@ -3,7 +3,7 @@ import { styled } from '../../lib/stitches.config';
 import { useNavigate } from 'react-router-dom';
 import { useSignInWithGoogle } from 'react-firebase-hooks/auth';
 import { auth, firestore } from 'lib/firebase';
-import { setDoc, doc } from 'firebase/firestore';
+import { setDoc, doc, getDoc } from 'firebase/firestore';
 import Button from '../../components/shared/Button';
 
 const Wrapper = styled('div', {
@@ -22,13 +22,21 @@ const Login = () => {
 
   useEffect(() => {
     if (user?.user) {
-      setDoc(doc(firestore, 'users', user.user.uid), {
-        email: user.user.email,
-        displayName: user.user.displayName,
-        photoURL: user.user.photoURL,
-      })
-      const split = user.user.email.split("@")
-      navigate(`/@${split[1]}`)
+      const fetchUser = async () => {
+        await getDoc(doc(firestore, 'users', user.user.uid)).then((user_doc) => {
+          if (!user_doc.exists()) {
+            setDoc(doc(firestore, 'users', user.user.uid), {
+              email: user.user.email,
+              displayName: user.user.displayName,
+              photoURL: user.user.photoURL,
+              domain: user.user.email.split("@")[1]
+            })
+          }
+        })
+        const split = user.user.email.split("@")
+        navigate(`/@${split[1]}`)
+      };
+      fetchUser();
     }
   }, [user, navigate]);
 
