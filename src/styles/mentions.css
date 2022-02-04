@@ -1,0 +1,54 @@
+.message-mentions-input {
+    width: 100%;
+    padding: 0px;
+    margin-bottom: 40px;
+}
+.message-mentions-input__input {
+    width: 100%;
+    margin: 0px!important;
+    padding: 20px 16px;
+    border-radius: 4px;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    font-size: 18px;
+    color: #000;
+}
+.message-mentions-input__input:hover {
+    border: 1px solid #000;
+}
+.message-mentions-input__input:focus {
+    border: 1px solid #05473C;
+}
+.message-mentions-input__suggestions {
+    width: 200px!important;
+    border-radius: 4px;
+    margin-top: 0px!important;
+    top: -50px!important;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+}
+.message-mentions-input__suggestions ul {
+    max-height: 200px;
+    overflow: auto;
+}
+.message-mentions-input__suggestions ul li {
+    padding: 6px 12px!important;
+    margin: 4px 0px;
+}
+.message-mentions-input__suggestions ul li p {
+    margin: 0px!important;
+}
+.message-mentions-input__suggestions ul li:hover {
+    background-color:rgba(0, 0, 0, 0.12);
+}
+.mentioned-user {
+    background-color: rgba(0, 0, 0, 0.08);
+    padding: 2px 4px;
+    margin-right: 2px;
+    border-radius: 8px;
+    color: black;
+    font-weight: 400;
+}
+.response-requested {
+    background-color: #d32f2f;
+    color: white;
+    opacity: 0.7;
+}

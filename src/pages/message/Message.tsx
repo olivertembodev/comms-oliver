@@ -1,3 +1,4 @@
+import { MentionsInput, Mention } from 'react-mentions';
 import { styled } from '../../lib/stitches.config';
 import Container from 'components/Container';
 import { useFormik } from 'formik';
@@ -5,8 +6,11 @@ import useMessage from 'hooks/useMessage';
 import useUser from 'hooks/useUser';
 import useSinglePost from 'hooks/useSinglePost';
 import Button from '../../components/shared/Button';
-import { Form, InputField } from '../../components/shared/Form';
+import { Form } from '../../components/shared/Form';
+import '../../styles/mentions.css';
 import { useEffect, useRef } from 'react';
+import useUsers from 'hooks/useUsers';
+import { mentionsTextParser } from 'lib';
 
 const Wrapper = styled('div', {
   paddingX: '16px',
@@ -72,6 +76,7 @@ export default function Message() {
   const { value } = useSinglePost();
   const { results, create } = useMessage();
   const messagesContainerRef = useRef(null);
+  const { users } = useUsers();
   const { user } = useUser();
 
   const scrollToBottom = () => {
@@ -108,7 +113,11 @@ export default function Message() {
           {results.map((item) => (
             <ListItem key={item.id}>
               <ListItemTextWrapper>
-                <PrimaryText>{item.text}</PrimaryText>
+                <PrimaryText
+                  dangerouslySetInnerHTML={{
+                    __html: mentionsTextParser(item.text).message,
+                  }}
+                ></PrimaryText>
                 <SecondaryText>{`From: ${
                   item.user?.name === user.displayName
                     ? 'You'
@@ -119,13 +128,30 @@ export default function Message() {
           ))}
         </List>
         <Form onSubmit={handleSubmit}>
-          <InputField
-            placeholder="Message"
-            required
-            name="text"
-            onChange={handleChange}
+          <MentionsInput
+            singleLine={true}
             value={values.text}
-          />
+            onChange={(e: { target: object }) =>
+              handleChange({ target: { name: 'text', ...e.target } })
+            }
+            placeholder="Message"
+            className="message-mentions-input"
+            required
+          >
+            <Mention
+              trigger="@"
+              appendSpaceOnAdd
+              renderSuggestion={({ display }) => <p>{display}</p>}
+              data={users}
+            ></Mention>
+            <Mention
+              trigger="@@"
+              markup="@@[__display__](__id__)"
+              appendSpaceOnAdd
+              renderSuggestion={({ display }) => <p>{display}</p>}
+              data={users}
+            ></Mention>
+          </MentionsInput>
           <Button type="submit">Send</Button>
         </Form>
       </div>

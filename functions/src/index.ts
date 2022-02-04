@@ -1,4 +1,6 @@
+/* eslint-disable array-callback-return */
 import * as functions from 'firebase-functions';
+import { mentionsTextParser } from './utils';
 const admin = require('firebase-admin');
 admin.initializeApp();
 const db = admin.firestore();
@@ -19,6 +21,21 @@ exports.sendNotificationToUsers = functions.firestore
         users.docs.forEach(
           (user: { data: FunctionConstructor; id: string }) => {
             if (newValue.userId !== user.id) {
+              const { mentions } = mentionsTextParser(newValue.text);
+              let isReponseRequested = false;
+              let isMentioned = false;
+              if (mentions?.length) {
+                const notificationsForCurrentUsers = mentions.filter(
+                  (mention) => mention.userId === user.id,
+                );
+                if (notificationsForCurrentUsers?.length) {
+                  notificationsForCurrentUsers.map((mention) => {
+                    if (mention.actionType === 'response-requested') {
+                      isReponseRequested = true;
+                    }
+                  });
+                }
+              }
               const inboxRef = db.collection(`users/${user.id}/inbox`).doc();
               const notification = {
                 time: newValue.time ?? db.FieldValue.serverTimestamp(),
@@ -31,16 +48,16 @@ exports.sendNotificationToUsers = functions.firestore
                 post: params.postId ?? '',
                 subject: newValue.subject ?? '',
                 isNew: true,
-                responseRequired: false,
+                responseRequired: isReponseRequested,
                 isDone: false,
-              }
+                isMentioned: isMentioned,
+              };
               writeBatch.create(inboxRef, notification);
             }
           },
         );
         writeBatch.commit().then(() => {
-            console.log('Successfully sent notifications.');
+          console.log('Successfully sent notifications.');
         });
       });
-
   });
