@@ -3,6 +3,7 @@ import Container from 'components/Container';
 import { Link } from 'react-router-dom';
 import Button from 'components/shared/Button';
 import useInbox from 'hooks/useInbox';
+import { mentionsTextParser } from 'lib';
 
 const Wrapper = styled('div', { paddingX: '16px' });
 const Heading3 = styled('h3', {
@@ -90,6 +91,9 @@ const EmptyMessage = styled('div', {
     lineHeight: '24px',
   },
 });
+const ButtonsWrapper = styled('div', {
+  width: '20%',
+});
 
 export default function Inbox() {
   const { inbox, markMessageAsDone, loading } = useInbox();
@@ -122,15 +126,29 @@ export default function Inbox() {
                       </ListWrapper>
                       <TextWrapper>
                         <PrimaryText>{item.subject}</PrimaryText>
-                        <SecondaryText>{item.message}</SecondaryText>
+                        <SecondaryText
+                          dangerouslySetInnerHTML={{
+                            __html: mentionsTextParser(item.message).message,
+                          }}
+                        ></SecondaryText>
                       </TextWrapper>
-                      <div>
+                      <ButtonsWrapper>
+                        {item.responseRequired ? (
+                          <Button
+                            danger
+                            disabled
+                            inactive
+                            title="Response Requested"
+                          >
+                            Response Required
+                          </Button>
+                        ) : null}
                         <Button
                           onClick={(e) => markMessageAsDone(e, item, index)}
                         >
                           Mark as done
                         </Button>
-                      </div>
+                      </ButtonsWrapper>
                     </ListItemTextWrapper>
                   </Link>
                 </ListItem>

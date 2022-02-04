@@ -12,12 +12,15 @@ export default function useInbox() {
   const [messagesInInbox, setMessagesInInbox] = useState(0);
 
   const orderInbox = orderBy('time', 'desc');
+  const orderByResponses = orderBy('responseRequired', 'desc');
   const col = query(
     collection(firestore, `users`, `${user?.uid ?? 'user'}`, `inbox`),
+    orderByResponses,
     orderInbox,
   );
 
-  const [value, loading] = useCollection(col);
+  const [value, loading, error] = useCollection(col);
+  console.log(error);
   useEffect(() => {
     if (value?.docs.length) {
       let results = [];
