@@ -11,6 +11,7 @@ import useInbox from 'hooks/useInbox';
 import NotificationIcon from '../assets/images/Alarm_Icon.png';
 import useUser from 'hooks/useUser';
 import Button from './shared/Button';
+import { useRegisterActions, createAction } from 'kbar';
 
 const Wrapper = styled('div', {
   container: 'none',
@@ -23,7 +24,7 @@ const SideBar = styled('div', {
   position: 'fixed',
   inset: '0px auto 0px 0px',
   backgroundColor: '$primary',
-  zIndex: '50',
+  zIndex: '0',
   paddingY: '24px',
   paddingX: '0px',
   width: '392px',
@@ -81,6 +82,7 @@ const ChildrenWrapper = styled('div', {
   background: '$primary',
   padding: '24px 0px',
   marginLeft: '392px',
+  zIndex: '0',
   width: '100%',
 })
 const InboxCountViewer = styled('div', {
@@ -138,6 +140,26 @@ export default function Container({ children }) {
     signOut(auth);
     navigate('/');
   };
+  useRegisterActions([
+    createAction({
+      name: 'Goto Inbox',
+      shortcut: ['g', 'i'],
+      keywords: 'inbox',
+      perform: () => navigate(`/${params.domain}/inbox/${user?.uid}`),
+    }),
+    createAction({
+      name: 'Logout',
+      shortcut: ['l', 'o'],
+      keywords: 'logout',
+      perform: () => handleLogout(),
+    }),
+    createAction({
+      name: 'Notifications and Preferences',
+      shortcut: ['n', 'p'],
+      keywords: 'preferences',
+      perform: () => toggleNotificationsDropDown(),
+    }),
+  ], [user, params]);
   return (
     <Wrapper>
       <SideBar>
@@ -165,7 +187,7 @@ export default function Container({ children }) {
         </LinkWrapper>
         <ChannelList />
       </SideBar>
-      <ChildrenWrapper>{children}</ChildrenWrapper>
+      {children ? <ChildrenWrapper>{children}</ChildrenWrapper> : null}
     </Wrapper>
   );
 }

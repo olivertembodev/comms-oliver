@@ -4,16 +4,16 @@ import { useNavigate } from 'react-router-dom';
 import { useSignInWithGoogle } from 'react-firebase-hooks/auth';
 import { auth, firestore } from 'lib/firebase';
 import { setDoc, doc, getDoc } from 'firebase/firestore';
+import { createAction, useRegisterActions } from 'kbar';
 import Button from '../../components/shared/Button';
 
 const Wrapper = styled('div', {
   container: 'none',
   minHeight: '100vh',
-
-})
+});
 const Form = styled('form', {
   background: '$primary',
-  container: '480px',  
+  container: '480px',
 });
 
 const Login = () => {
@@ -23,35 +23,45 @@ const Login = () => {
   useEffect(() => {
     if (user?.user) {
       const fetchUser = async () => {
-        await getDoc(doc(firestore, 'users', user.user.uid)).then((user_doc) => {
-          if (!user_doc.exists()) {
-            setDoc(doc(firestore, 'users', user.user.uid), {
-              email: user.user.email,
-              displayName: user.user.displayName,
-              photoURL: user.user.photoURL,
-              domain: user.user.email.split("@")[1],
-              notifications: 'only when mentioned',
-            })
-          }
-        })
-        const split = user.user.email.split("@")
-        navigate(`/@${split[1]}`)
+        await getDoc(doc(firestore, 'users', user.user.uid)).then(
+          (user_doc) => {
+            if (!user_doc.exists()) {
+              setDoc(doc(firestore, 'users', user.user.uid), {
+                email: user.user.email,
+                displayName: user.user.displayName,
+                photoURL: user.user.photoURL,
+                domain: user.user.email.split('@')[1],
+                notifications: 'only when mentioned',
+              });
+            }
+          },
+        );
+        const split = user.user.email.split('@');
+        navigate(`/@${split[1]}`);
       };
       fetchUser();
     }
   }, [user, navigate]);
 
+  useRegisterActions([
+    createAction({
+      name: 'Login with Google',
+      shortcut: ['l', 'g'],
+      keywords: 'Login',
+      perform: () => signInWithGoogle(),
+    })
+  ], [signInWithGoogle]);
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    signInWithGoogle()
+    signInWithGoogle();
   };
 
   return (
     <Wrapper>
       <Form onSubmit={handleSubmit}>
-          <Button type="submit" disabled={loading}>
-            Login with Google
-          </Button>
+        <Button type="submit" disabled={loading}>
+          Login with Google
+        </Button>
       </Form>
     </Wrapper>
   );
