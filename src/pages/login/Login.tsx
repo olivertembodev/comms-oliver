@@ -29,7 +29,8 @@ const Login = () => {
               email: user.user.email,
               displayName: user.user.displayName,
               photoURL: user.user.photoURL,
-              domain: user.user.email.split("@")[1]
+              domain: user.user.email.split("@")[1],
+              notifications: 'only when mentioned',
             })
           }
         })

@@ -49,7 +49,6 @@ const List = styled('ul', {
   paddingY: '4px',
   maxHeight: 'calc(100vh - 390px)',
   overflowY: 'auto',
-  scrollBehavior: 'smooth',
 });
 
 const ListItem = styled('li', {
@@ -91,10 +90,7 @@ export default function Message() {
   const { user } = useUser();
 
   const scrollToBottom = () => {
-    messagesContainerRef.current.scrollTo(
-      0,
-      messagesContainerRef.current.scrollHeight + 20000,
-    );
+    messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
   };
 
   const { values, handleChange, handleSubmit } = useFormik({
@@ -122,7 +118,7 @@ export default function Message() {
         <Heading5>Message</Heading5>
         <List ref={messagesContainerRef}>
           {results.map((item) => (
-            <ListItem key={item.id}>
+            <ListItem key={item.id} id={item.id}>
               <ListItemTextWrapper>
                 <PrimaryText
                   dangerouslySetInnerHTML={{
@@ -165,6 +161,7 @@ export default function Message() {
               trigger="@@"
               markup="@@[__display__](__id__)"
               appendSpaceOnAdd
+              displayTransform={transformMentionDisplay}
               renderSuggestion={({ display, image }) => (
                 <SuggesstionItem>
                 <img src={image} alt={display} width={24} height={24}/>
