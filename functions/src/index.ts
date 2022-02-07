@@ -43,6 +43,7 @@ exports.sendNotificationToUsers = functions.firestore
                 user: newValue.user ?? { email: '', photoURL: '', name: '' },
                 userId: newValue.userId ?? '',
                 domain: params.domainId ?? '',
+                channelName: newValue.channel ?? '',
                 channel: params.channelId ?? '',
                 messageId: params.messageId ?? '',
                 post: params.postId ?? '',

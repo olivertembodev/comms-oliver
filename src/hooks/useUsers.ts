@@ -27,7 +27,7 @@ export default function useUsers() {
     if (value?.docs.length) {
       let results = [];
       value?.docs?.map((doc) => {
-        results.push({ id: doc.id, display: doc.data().displayName });
+        results.push({ id: doc.id, display: doc.data().displayName, image: doc.data().photoURL });
       });
       setUsers(results);
     }

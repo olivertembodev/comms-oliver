@@ -9,6 +9,7 @@ export default function useChannel() {
 
   const params = useParams();
   const domain = params.domain;
+  const channel = params.channel;
   const col = collection(firestore, `channels`, `domain`, `${domain.replace("@","")}`)
   
   const [value, loading] = useCollection(col)
@@ -35,10 +36,13 @@ export default function useChannel() {
     name: doc.get("name")
   }))
 
+  const currentChannel = results?.filter((item) => item.id === channel);;
+
   return {
     domain,
     create,
     loading,
-    results: results || []
+    results: results || [],
+    currentChannel,
   }
 }

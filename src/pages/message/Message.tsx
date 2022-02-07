@@ -10,7 +10,8 @@ import { Form } from '../../components/shared/Form';
 import '../../styles/mentions.css';
 import { useEffect, useRef } from 'react';
 import useUsers from 'hooks/useUsers';
-import { mentionsTextParser } from 'lib';
+import { mentionsTextParser, transformMentionDisplay } from 'lib';
+import useChannel from 'hooks/useChannel';
 
 const Wrapper = styled('div', {
   paddingX: '16px',
@@ -71,10 +72,20 @@ const SecondaryText = styled('p', {
   fontWeight: '300',
   opacity: 0.7,
 });
+const SuggesstionItem = styled('div', {
+  display: 'flex', 
+  alignItems: 'center',
+  '& > img': {
+    marginRight: '8px',
+    borderRadius: '50%',
+    objectFit: 'cover',
+  }
+})
 
 export default function Message() {
   const { value } = useSinglePost();
   const { results, create } = useMessage();
+  const { currentChannel } = useChannel();
   const messagesContainerRef = useRef(null);
   const { users } = useUsers();
   const { user } = useUser();
@@ -89,7 +100,7 @@ export default function Message() {
   const { values, handleChange, handleSubmit } = useFormik({
     initialValues: { text: '' },
     onSubmit: (values, { resetForm }) => {
-      create(values.text, value?.subject);
+      create(values.text, value?.subject, currentChannel[0].name);
       resetForm();
       scrollToBottom();
     },
@@ -141,14 +152,25 @@ export default function Message() {
             <Mention
               trigger="@"
               appendSpaceOnAdd
-              renderSuggestion={({ display }) => <p>{display}</p>}
+              displayTransform={transformMentionDisplay}
+              renderSuggestion={({ display, image }) =>
+            <SuggesstionItem>
+              <img src={image} alt={display} width={24} height={24}/>
+              <p>{display}</p>
+            </SuggesstionItem>
+            }
               data={users}
             ></Mention>
             <Mention
               trigger="@@"
               markup="@@[__display__](__id__)"
               appendSpaceOnAdd
-              renderSuggestion={({ display }) => <p>{display}</p>}
+              renderSuggestion={({ display, image }) => (
+                <SuggesstionItem>
+                <img src={image} alt={display} width={24} height={24}/>
+                <p>{display}</p>
+              </SuggesstionItem>
+              )}
               data={users}
             ></Mention>
           </MentionsInput>

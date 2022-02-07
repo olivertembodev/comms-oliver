@@ -19,8 +19,7 @@ export default function useInbox() {
     orderInbox,
   );
 
-  const [value, loading, error] = useCollection(col);
-  console.log(error);
+  const [value, loading] = useCollection(col);
   useEffect(() => {
     if (value?.docs.length) {
       let results = [];
@@ -31,7 +30,7 @@ export default function useInbox() {
       });
       setResults(results);
       setMessagesInInbox(results.length);
-    }
+    } else setMessagesInInbox(0);
   }, [value]);
 
   const markMessageAsDone = async (
