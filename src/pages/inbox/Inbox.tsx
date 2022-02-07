@@ -77,7 +77,7 @@ const ListWrapper = styled('div', {
 });
 
 const TextWrapper = styled('div', {
-  width: '20%',
+  width: '70%',
 });
 const EmptyMessage = styled('div', {
   height: '60vh',
@@ -125,7 +125,7 @@ export default function Inbox() {
                         <PrimaryText>{item.user.displayName}</PrimaryText>
                       </ListWrapper>
                       <TextWrapper>
-                        <PrimaryText>{item.subject}</PrimaryText>
+                        <PrimaryText>{item.channelName ? `#${item.channelName}` : (item.subject ?? '') }</PrimaryText>
                         <SecondaryText
                           dangerouslySetInnerHTML={{
                             __html: mentionsTextParser(item.message).message,

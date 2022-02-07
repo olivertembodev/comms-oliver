@@ -13,14 +13,18 @@ export const mentionsTextParser = (text: string) => {
       mention[1],
       `<span title='${
         mention[1].includes('@@')
-          ? `Response Requested from ${displayName}`
+          ? `Response Requested from ${displayName.split(' ')[0]}`
           : displayName
       }' class='mentioned-user ${
         mention[1].includes('@@') ? 'response-requested' : ''
-      }'>${displayName}</span>`,
+      }'>${displayName.split(' ')[0]}</span>`,
     );
   });
   return {
     message,
   };
 };
+
+export const transformMentionDisplay = (id: string, display: string) => {
+  return display.split(' ')[0];
+}

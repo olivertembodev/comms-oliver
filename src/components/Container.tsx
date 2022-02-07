@@ -40,7 +40,9 @@ const LinkWrapper = styled('div', {
   paddingY: '10px',
   '& > a': {
     textDecoration: 'none',
-    fontSize: '18px',
+    display: 'flex',
+    alignItems: 'center',
+    fontSize: '16px',
     fontWeight: '500',
     lineHeight: '16px',
     color: '$secondary',
@@ -68,12 +70,22 @@ const LogoutButton = styled('button', {
     opacity: '0.8',
   }
 })
-
 const ChildrenWrapper = styled('div', {
   background: '$primary',
   padding: '24px 0px',
   marginLeft: '392px',
   width: '100%',
+})
+const InboxCountViewer = styled('div', {
+  borderRadius: '50%',
+  background: '$danger',
+  width: '28px',
+  height: '28px',
+  color: '$primary',
+  marginLeft: '4px',
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
 })
 
 export default function Container({ children }) {
@@ -100,7 +112,7 @@ export default function Container({ children }) {
     <Wrapper>
       <SideBar>
         <TopBar>
-          <Eyebrow>{domain}</Eyebrow>
+          <Eyebrow>Comms</Eyebrow>
           <LogoutButton
             onClick={handleLogout}
             type="submit"
@@ -110,7 +122,7 @@ export default function Container({ children }) {
         </TopBar>
         <LinkWrapper>
           <Link to={`/${domain}/inbox/${user?.uid}`}>
-            Inbox - {messagesInInbox ?? '0'}
+            Inbox - <InboxCountViewer>{messagesInInbox ?? '0'}</InboxCountViewer>
           </Link>
         </LinkWrapper>
         <ChannelList />
