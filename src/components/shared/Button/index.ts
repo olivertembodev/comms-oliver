@@ -32,6 +32,17 @@ const Button = styled('button', {
         },
       },
     },
+    selected: {
+      true: {
+        border: '1px solid $light_green',
+      }
+    },
+    notSelected: {
+      true: {
+        background: '$light_green',
+        color: '$secondary',
+      }
+    }
   },
 });
 export default Button;

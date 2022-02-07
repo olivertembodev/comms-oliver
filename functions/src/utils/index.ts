@@ -26,6 +26,12 @@ export const mentionsTextParser = (text: string) => {
         userId,
         actionType: 'response-requested',
       });
+    } else if (mention[1].includes('@')) {
+      mentions.push({
+        displayName,
+        userId,
+        actionType: 'mentioned',
+      });
     }
   });
   return {

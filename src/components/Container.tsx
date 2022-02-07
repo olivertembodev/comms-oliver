@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { styled } from '../lib/stitches.config';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuthState } from 'react-firebase-hooks/auth';
@@ -8,6 +8,9 @@ import { auth } from 'lib/firebase';
 import ChannelList from 'components/ChannelList';
 import { signOut } from 'firebase/auth';
 import useInbox from 'hooks/useInbox';
+import NotificationIcon from '../assets/images/Alarm_Icon.png';
+import useUser from 'hooks/useUser';
+import Button from './shared/Button';
 
 const Wrapper = styled('div', {
   container: 'none',
@@ -37,7 +40,11 @@ const LinkWrapper = styled('div', {
   width: '100%',
   paddingX: '12px',
   marginTop: '12px',
+  position: 'relative',
   paddingY: '10px',
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'flex-start',
   '& > a': {
     textDecoration: 'none',
     display: 'flex',
@@ -87,6 +94,24 @@ const InboxCountViewer = styled('div', {
   justifyContent: 'center',
   alignItems: 'center',
 })
+const NotificationsButton = styled('button', {
+  padding: 0,
+  margin: 0,
+  background: 'transparent',
+  border: 'none',
+  cursor: 'pointer',
+})
+const DropDown = styled('div', {
+  position: 'absolute',
+  top: '40px',
+  right: 0,
+  background: '$primary',
+  border: '1px solid $secondary',
+  width: '70%',
+  borderRadius: '8px',
+  padding: '8px 4px',
+  paddingTop: '0px',
+})
 
 export default function Container({ children }) {
   const navigate = useNavigate();
@@ -94,6 +119,11 @@ export default function Container({ children }) {
   const domain = params.domain;
   const [user, loading] = useAuthState(auth);
   const { messagesInInbox } = useInbox();
+  const { userDetails, updateNotificationPreferences } = useUser();
+  const [notificationsDropDown ,setNotificationsDropDown] = useState(false);
+  const toggleNotificationsDropDown = () => {
+    setNotificationsDropDown(!notificationsDropDown);
+  }
   useEffect(() => {
     if (!loading && !user) {
       navigate('/');
@@ -124,6 +154,14 @@ export default function Container({ children }) {
           <Link to={`/${domain}/inbox/${user?.uid}`}>
             Inbox - <InboxCountViewer>{messagesInInbox ?? '0'}</InboxCountViewer>
           </Link>
+          <NotificationsButton onClick={toggleNotificationsDropDown}>
+            <img src={NotificationIcon} width={28} height={28} alt="Edit notification permissions"/>
+          </NotificationsButton>
+          { notificationsDropDown ?(
+          <DropDown>
+            <Button onClick={() => updateNotificationPreferences('only when mentioned')} inactive={userDetails?.notifications === 'only when mentioned'}>Only When Mentioned {userDetails?.notifications === 'only when mentioned' ? ' (selected)' : ''}</Button>
+            <Button onClick={() => updateNotificationPreferences('all posts')} inactive={userDetails?.notifications === 'all posts'}>All Posts {userDetails?.notifications === 'all posts' ? ' (selected)' : ''}</Button>
+          </DropDown>) : null}
         </LinkWrapper>
         <ChannelList />
       </SideBar>

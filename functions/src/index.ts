@@ -19,7 +19,7 @@ exports.sendNotificationToUsers = functions.firestore
       .get()
       .then((users: { docs: [] }) => {
         users.docs.forEach(
-          (user: { data: FunctionConstructor; id: string }) => {
+          (user: { data: Function; id: string, }) => {
             if (newValue.userId !== user.id) {
               const { mentions } = mentionsTextParser(newValue.text);
               let isReponseRequested = false;
@@ -32,6 +32,8 @@ exports.sendNotificationToUsers = functions.firestore
                   notificationsForCurrentUsers.map((mention) => {
                     if (mention.actionType === 'response-requested') {
                       isReponseRequested = true;
+                    } else if (mention.actionType === 'mentioned') {
+                      isMentioned = true;
                     }
                   });
                 }
@@ -53,7 +55,9 @@ exports.sendNotificationToUsers = functions.firestore
                 isDone: false,
                 isMentioned: isMentioned,
               };
-              writeBatch.create(inboxRef, notification);
+              if (user.data().notifications === 'all posts' || (isMentioned && user.data().notifications === 'only when mentioned') || isReponseRequested) {
+                writeBatch.create(inboxRef, notification);
+              }
             }
           },
         );
