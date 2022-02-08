@@ -5,7 +5,6 @@ import { useFormik } from 'formik';
 import useMessage from 'hooks/useMessage';
 import useUser from 'hooks/useUser';
 import useSinglePost from 'hooks/useSinglePost';
-import Button from '../../components/shared/Button';
 import { Form } from '../../components/shared/Form';
 import '../../styles/mentions.css';
 import { useEffect, useRef } from 'react';
@@ -47,8 +46,9 @@ const List = styled('ul', {
   marginTop: '32px',
   borderBottom: '1px solid rgba(0, 0, 0, 0.12)',
   paddingY: '4px',
-  maxHeight: 'calc(100vh - 390px)',
+  maxHeight: 'calc(100vh - 320px)',
   overflowY: 'auto',
+  listStyle: 'none',
 });
 
 const ListItem = styled('li', {
@@ -88,11 +88,9 @@ export default function Message() {
   const messagesContainerRef = useRef(null);
   const { users } = useUsers();
   const { user } = useUser();
-
   const scrollToBottom = () => {
     messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
   };
-
   const { values, handleChange, handleSubmit } = useFormik({
     initialValues: { text: '' },
     onSubmit: (values, { resetForm }) => {
@@ -144,6 +142,7 @@ export default function Message() {
             placeholder="Message"
             className="message-mentions-input"
             required
+            autoFocus
           >
             <Mention
               trigger="@"
@@ -171,7 +170,6 @@ export default function Message() {
               data={users}
             ></Mention>
           </MentionsInput>
-          <Button type="submit">Send</Button>
         </Form>
       </div>
     </Container>

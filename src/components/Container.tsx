@@ -11,6 +11,7 @@ import useInbox from 'hooks/useInbox';
 import NotificationIcon from '../assets/images/Alarm_Icon.png';
 import useUser from 'hooks/useUser';
 import Button from './shared/Button';
+import { useRegisterActions, createAction } from 'kbar';
 
 const Wrapper = styled('div', {
   container: 'none',
@@ -23,7 +24,7 @@ const SideBar = styled('div', {
   position: 'fixed',
   inset: '0px auto 0px 0px',
   backgroundColor: '$primary',
-  zIndex: '50',
+  zIndex: '0',
   paddingY: '24px',
   paddingX: '0px',
   width: '392px',
@@ -64,23 +65,11 @@ const Eyebrow = styled('p', {
   color: '$secondary',
   margin: 0,
 })
-const LogoutButton = styled('button', {
-  background: '$danger',
-  fontSize: '14px',
-  color: '$primary',
-  padding: '4px 10px',
-  borderRadius: '4px',
-  minWidth: '64px',
-  border: 'none',
-  cursor: 'pointer',
-  '&:hover': {
-    opacity: '0.8',
-  }
-})
 const ChildrenWrapper = styled('div', {
   background: '$primary',
   padding: '24px 0px',
   marginLeft: '392px',
+  zIndex: '0',
   width: '100%',
 })
 const InboxCountViewer = styled('div', {
@@ -138,17 +127,49 @@ export default function Container({ children }) {
     signOut(auth);
     navigate('/');
   };
+  useRegisterActions([
+    createAction({
+      name: 'Goto Inbox',
+      shortcut: ['g', 'i'],
+      keywords: 'inbox',
+      perform: () => navigate(`/${params.domain}/inbox/${user?.uid}`),
+    }),
+    createAction({
+      name: 'Logout',
+      shortcut: ['l', 'o'],
+      keywords: 'logout',
+      perform: () => handleLogout(),
+    }),
+    createAction({
+      name: 'Notifications and Preferences',
+      shortcut: ['n', 'p'],
+      keywords: 'preferences',
+      perform: () => toggleNotificationsDropDown(),
+    }),
+    createAction({
+      name: 'Set notifications to only when mentioned',
+      shortcut: ['n', 'm'],
+      keywords: 'only-when-mentioned',
+      perform: () => updateNotificationPreferences('only when mentioned'),
+    }),
+    createAction({
+      name: 'Set notifications to all posts',
+      shortcut: ['n', 'a'],
+      keywords: 'all-posts',
+      perform: () => updateNotificationPreferences('all posts'),
+    }),
+    createAction({
+      name: 'Go Back',
+      shortcut: ['<'],
+      keywords: 'back',
+      perform: () => navigate(-1),
+    }),
+  ], [user, params, notificationsDropDown, userDetails]);
   return (
     <Wrapper>
       <SideBar>
         <TopBar>
           <Eyebrow>Comms</Eyebrow>
-          <LogoutButton
-            onClick={handleLogout}
-            type="submit"
-          >
-            Logout
-          </LogoutButton>
         </TopBar>
         <LinkWrapper>
           <Link to={`/${domain}/inbox/${user?.uid}`}>
@@ -159,13 +180,13 @@ export default function Container({ children }) {
           </NotificationsButton>
           { notificationsDropDown ?(
           <DropDown>
-            <Button onClick={() => updateNotificationPreferences('only when mentioned')} inactive={userDetails?.notifications === 'only when mentioned'}>Only When Mentioned {userDetails?.notifications === 'only when mentioned' ? ' (selected)' : ''}</Button>
-            <Button onClick={() => updateNotificationPreferences('all posts')} inactive={userDetails?.notifications === 'all posts'}>All Posts {userDetails?.notifications === 'all posts' ? ' (selected)' : ''}</Button>
+            <Button inactive>Only When Mentioned {userDetails?.notifications === 'only when mentioned' ? ' (selected)' : ''}</Button>
+            <Button inactive>All Posts {userDetails?.notifications === 'all posts' ? ' (selected)' : ''}</Button>
           </DropDown>) : null}
         </LinkWrapper>
         <ChannelList />
       </SideBar>
-      <ChildrenWrapper>{children}</ChildrenWrapper>
+      {children ? <ChildrenWrapper>{children}</ChildrenWrapper> : null}
     </Wrapper>
   );
 }
