@@ -5,7 +5,7 @@ import { useSignInWithGoogle } from 'react-firebase-hooks/auth';
 import { auth, firestore } from 'lib/firebase';
 import { setDoc, doc, getDoc } from 'firebase/firestore';
 import { createAction, useRegisterActions } from 'kbar';
-import Button from '../../components/shared/Button';
+import Button from 'components/shared/Button';
 
 const Wrapper = styled('div', {
   container: 'none',
@@ -53,14 +53,16 @@ const Login = () => {
   ], [signInWithGoogle]);
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    signInWithGoogle();
+    if (!loading) {
+      signInWithGoogle();
+    }
   };
 
   return (
     <Wrapper>
       <Form onSubmit={handleSubmit}>
-        <Button type="submit" disabled={loading}>
-          Login with Google
+        <Button disabled inactive type="button">
+          Hit Command+K or L+G to login using google
         </Button>
       </Form>
     </Wrapper>

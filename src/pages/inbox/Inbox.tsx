@@ -1,10 +1,11 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { styled } from '../../lib/stitches.config';
 import Container from 'components/Container';
 import { Link, useNavigate } from 'react-router-dom';
 import Button from 'components/shared/Button';
 import useInbox from 'hooks/useInbox';
 import { mentionsTextParser } from 'lib';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { createAction, useRegisterActions } from 'kbar';
 
 const Wrapper = styled('div', { paddingX: '16px' });
@@ -20,9 +21,11 @@ const List = styled('ul', {
   padding: 0,
   margin: 0,
   marginTop: '24px',
+  listStyle: 'none',
 });
 const ListItem = styled('li', {
   margin: 0,
+  listStyle: 'none',
   borderBottom: '1px solid rgba(0, 0, 0, 0.12)',
   padding: '24px 0px',
   '&:hover': {
@@ -108,7 +111,6 @@ export default function Inbox() {
   const { inbox, markMessageAsDone, loading } = useInbox();
   const [selectedInboxItem, setSelectedInboxItem] = useState(0);
   const navigate = useNavigate();
-  
   const nextItem = () => {
     if (inbox.length > selectedInboxItem + 1) {
       setSelectedInboxItem(selectedInboxItem + 1);
@@ -121,30 +123,35 @@ export default function Inbox() {
   }
   useRegisterActions([
     createAction({
-      name: 'Move to next item',
+      name: 'Move to next message',
       shortcut: ['j'],
       keywords: 'next',
       perform: () => nextItem(),
     }),
     createAction({
-      name: 'Move to previous item',
+      name: 'Move to previous message',
       shortcut: ['k'],
       keywords: 'previous',
       perform: () => previousItem(),
     }),
     createAction({
       name: 'Go to post',
-      shortcut: ['g', 'p'],
+      shortcut: ['>'],
       keywords: 'post',
-      perform: () => navigate(`/@${inbox[selectedInboxItem].domain}/${inbox[selectedInboxItem].channel}/${inbox[selectedInboxItem].post}`),
+      perform: () => inbox.length ?  navigate(`/@${inbox[selectedInboxItem].domain}/${inbox[selectedInboxItem].channel}/${inbox[selectedInboxItem].post}`) : null,
     }),
     createAction({
       name: 'Mark as done',
       shortcut: ['e'],
       keywords: 'post',
-      perform: () => markMessageAsDone(inbox[selectedInboxItem], selectedInboxItem),
+      perform: () => {
+        markMessageAsDone(inbox[selectedInboxItem], selectedInboxItem);
+      },
     }),
   ], [selectedInboxItem, inbox]);
+  useEffect(() => {
+    setSelectedInboxItem(inbox.length - 1);
+  }, [inbox]);
   return (
     <Container>
       <div>

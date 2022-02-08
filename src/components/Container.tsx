@@ -65,19 +65,6 @@ const Eyebrow = styled('p', {
   color: '$secondary',
   margin: 0,
 })
-const LogoutButton = styled('button', {
-  background: '$danger',
-  fontSize: '14px',
-  color: '$primary',
-  padding: '4px 10px',
-  borderRadius: '4px',
-  minWidth: '64px',
-  border: 'none',
-  cursor: 'pointer',
-  '&:hover': {
-    opacity: '0.8',
-  }
-})
 const ChildrenWrapper = styled('div', {
   background: '$primary',
   padding: '24px 0px',
@@ -171,18 +158,18 @@ export default function Container({ children }) {
       keywords: 'all-posts',
       perform: () => updateNotificationPreferences('all posts'),
     }),
+    createAction({
+      name: 'Go Back',
+      shortcut: ['<'],
+      keywords: 'back',
+      perform: () => navigate(-1),
+    }),
   ], [user, params, notificationsDropDown, userDetails]);
   return (
     <Wrapper>
       <SideBar>
         <TopBar>
           <Eyebrow>Comms</Eyebrow>
-          <LogoutButton
-            onClick={handleLogout}
-            type="submit"
-          >
-            Logout
-          </LogoutButton>
         </TopBar>
         <LinkWrapper>
           <Link to={`/${domain}/inbox/${user?.uid}`}>
@@ -193,8 +180,8 @@ export default function Container({ children }) {
           </NotificationsButton>
           { notificationsDropDown ?(
           <DropDown>
-            <Button onClick={() => updateNotificationPreferences('only when mentioned')} inactive={userDetails?.notifications === 'only when mentioned'}>Only When Mentioned {userDetails?.notifications === 'only when mentioned' ? ' (selected)' : ''}</Button>
-            <Button onClick={() => updateNotificationPreferences('all posts')} inactive={userDetails?.notifications === 'all posts'}>All Posts {userDetails?.notifications === 'all posts' ? ' (selected)' : ''}</Button>
+            <Button inactive>Only When Mentioned {userDetails?.notifications === 'only when mentioned' ? ' (selected)' : ''}</Button>
+            <Button inactive>All Posts {userDetails?.notifications === 'all posts' ? ' (selected)' : ''}</Button>
           </DropDown>) : null}
         </LinkWrapper>
         <ChannelList />
