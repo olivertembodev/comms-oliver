@@ -159,7 +159,19 @@ export default function Container({ children }) {
       keywords: 'preferences',
       perform: () => toggleNotificationsDropDown(),
     }),
-  ], [user, params]);
+    createAction({
+      name: 'Set notifications to only when mentioned',
+      shortcut: ['n', 'm'],
+      keywords: 'only-when-mentioned',
+      perform: () => updateNotificationPreferences('only when mentioned'),
+    }),
+    createAction({
+      name: 'Set notifications to all posts',
+      shortcut: ['n', 'a'],
+      keywords: 'all-posts',
+      perform: () => updateNotificationPreferences('all posts'),
+    }),
+  ], [user, params, notificationsDropDown, userDetails]);
   return (
     <Wrapper>
       <SideBar>

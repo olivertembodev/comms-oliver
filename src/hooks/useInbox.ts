@@ -34,12 +34,9 @@ export default function useInbox() {
   }, [value]);
 
   const markMessageAsDone = async (
-    e: React.MouseEvent,
     item: { id: string },
     index: number,
   ) => {
-    e.preventDefault();
-    e.stopPropagation();
     let messages = [...results];
     messages[index].isDone = true;
     messages.splice(index, 1);

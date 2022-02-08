@@ -1,9 +1,11 @@
 import { styled } from '../../lib/stitches.config';
 import Container from 'components/Container';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Button from 'components/shared/Button';
 import useInbox from 'hooks/useInbox';
 import { mentionsTextParser } from 'lib';
+import { useState } from 'react';
+import { createAction, useRegisterActions } from 'kbar';
 
 const Wrapper = styled('div', { paddingX: '16px' });
 const Heading3 = styled('h3', {
@@ -28,6 +30,13 @@ const ListItem = styled('li', {
   },
   '& > a': {
     textDecoration: 'none',
+  },
+  variants: {
+    isSelected: {
+      true: {
+        backgroundColor: 'rgba(0, 0, 0, 0.1)',
+      },
+    },
   },
 });
 const ListItemTextWrapper = styled('div', {
@@ -97,6 +106,45 @@ const ButtonsWrapper = styled('div', {
 
 export default function Inbox() {
   const { inbox, markMessageAsDone, loading } = useInbox();
+  const [selectedInboxItem, setSelectedInboxItem] = useState(0);
+  const navigate = useNavigate();
+  
+  const nextItem = () => {
+    if (inbox.length > selectedInboxItem + 1) {
+      setSelectedInboxItem(selectedInboxItem + 1);
+    }
+  }
+  const previousItem = () => {
+    if (selectedInboxItem) {
+      setSelectedInboxItem(selectedInboxItem - 1);
+    }
+  }
+  useRegisterActions([
+    createAction({
+      name: 'Move to next item',
+      shortcut: ['j'],
+      keywords: 'next',
+      perform: () => nextItem(),
+    }),
+    createAction({
+      name: 'Move to previous item',
+      shortcut: ['k'],
+      keywords: 'previous',
+      perform: () => previousItem(),
+    }),
+    createAction({
+      name: 'Go to post',
+      shortcut: ['g', 'p'],
+      keywords: 'post',
+      perform: () => navigate(`/@${inbox[selectedInboxItem].domain}/${inbox[selectedInboxItem].channel}/${inbox[selectedInboxItem].post}`),
+    }),
+    createAction({
+      name: 'Mark as done',
+      shortcut: ['e'],
+      keywords: 'post',
+      perform: () => markMessageAsDone(inbox[selectedInboxItem], selectedInboxItem),
+    }),
+  ], [selectedInboxItem, inbox]);
   return (
     <Container>
       <div>
@@ -108,7 +156,7 @@ export default function Inbox() {
             inbox.map((item, index) => {
               if (item.isDone) return null;
               return (
-                <ListItem key={index}>
+                <ListItem key={index} isSelected={index === selectedInboxItem}>
                   <Link to={`/@${item.domain}/${item.channel}/${item.post}`}>
                     <ListItemTextWrapper>
                       <ListWrapper>
@@ -143,11 +191,6 @@ export default function Inbox() {
                             Response Required
                           </Button>
                         ) : null}
-                        <Button
-                          onClick={(e) => markMessageAsDone(e, item, index)}
-                        >
-                          Mark as done
-                        </Button>
                       </ButtonsWrapper>
                     </ListItemTextWrapper>
                   </Link>
