@@ -3,7 +3,7 @@ import Container from 'components/Container';
 import { useFormik } from 'formik';
 import usePost from 'hooks/usePost';
 import useSingleChannel from 'hooks/useSingleChannel';
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import Button from 'components/shared/Button';
 import { Form, InputField, TextArea } from 'components/shared/Form';
 import { useRef, useState } from 'react';
@@ -64,7 +64,8 @@ const SecondaryText = styled('p', {
 });
 export default function Post() {
   const navigate = useNavigate();
-  const { results, create, domain, channel } = usePost();
+  const params = useParams();
+  const { results, create, domain, channel } = usePost(params.domain);
   const [selectedPost, setSelectedPost] = useState(0);
   const inputRef = useRef(null);
   const { value } = useSingleChannel();

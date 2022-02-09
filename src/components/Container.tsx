@@ -129,6 +129,12 @@ export default function Container({ children }) {
   };
   useRegisterActions([
     createAction({
+      name: 'Compose a new message',
+      shortcut: ['c'],
+      keywords: 'compose',
+      perform: () => navigate(`/${domain}/compose`),
+    }),
+    createAction({
       name: 'Goto Inbox',
       shortcut: ['g', 'i'],
       keywords: 'inbox',

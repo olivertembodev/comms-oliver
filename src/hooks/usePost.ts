@@ -4,12 +4,12 @@ import { useParams } from 'react-router-dom';
 import { useCollection } from 'react-firebase-hooks/firestore';
 import { useAuthState } from "react-firebase-hooks/auth";
 
-export default function usePost() {
+export default function usePost(channedID:string) {
   const [user] = useAuthState(auth);
 
   const params = useParams();
   const domain = params.domain;
-  const channel = params.channel;
+  const channel = channedID;
   const col = collection(firestore, `channels`, `domain`, `${domain.replace("@","")}`, channel, "posts")
   
   const [value, loading] = useCollection(col)
