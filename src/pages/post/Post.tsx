@@ -65,7 +65,7 @@ const SecondaryText = styled('p', {
 export default function Post() {
   const navigate = useNavigate();
   const params = useParams();
-  const { results, create, domain, channel } = usePost(params.domain);
+  const { results, create, domain, channel } = usePost(params.channel);
   const [selectedPost, setSelectedPost] = useState(0);
   const inputRef = useRef(null);
   const { value } = useSingleChannel();

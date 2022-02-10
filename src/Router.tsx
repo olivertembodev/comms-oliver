@@ -1,10 +1,12 @@
 import { BrowserRouter } from 'react-router-dom';
 import KBarWrapper from 'components/KBarWrapper';
-
+import { GlobalProvider } from 'context/GlobalState';
 const Router = () => {
   return (
     <BrowserRouter>
-      <KBarWrapper />
+      <GlobalProvider>
+        <KBarWrapper />
+      </GlobalProvider>
     </BrowserRouter>
   );
 };

@@ -1,9 +1,9 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { styled } from '../lib/stitches.config';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuthState } from 'react-firebase-hooks/auth';
-import {Link} from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { auth } from 'lib/firebase';
 import ChannelList from 'components/ChannelList';
 import { signOut } from 'firebase/auth';
@@ -12,6 +12,7 @@ import NotificationIcon from '../assets/images/Alarm_Icon.png';
 import useUser from 'hooks/useUser';
 import Button from './shared/Button';
 import { useRegisterActions, createAction } from 'kbar';
+import { GlobalContext } from 'context/GlobalState';
 
 const Wrapper = styled('div', {
   container: 'none',
@@ -29,14 +30,14 @@ const SideBar = styled('div', {
   paddingX: '0px',
   width: '392px',
   borderRight: '1px solid rgba(0, 0, 0, 0.12)',
-})
+});
 const TopBar = styled('div', {
   display: 'flex',
   width: '100%',
   justifyContent: 'space-between',
   alignItems: 'center',
   paddingX: '12px',
-})
+});
 const LinkWrapper = styled('div', {
   width: '100%',
   paddingX: '12px',
@@ -56,22 +57,22 @@ const LinkWrapper = styled('div', {
     color: '$secondary',
   },
   '&:hover': {
-    backgroundColor: 'rgba(0, 0, 0, 0.04)'
-  }
-})
+    backgroundColor: 'rgba(0, 0, 0, 0.04)',
+  },
+});
 const Eyebrow = styled('p', {
   fontSize: '16px',
   lineHeight: '24px',
   color: '$secondary',
   margin: 0,
-})
+});
 const ChildrenWrapper = styled('div', {
   background: '$primary',
   padding: '24px 0px',
   marginLeft: '392px',
   zIndex: '0',
   width: '100%',
-})
+});
 const InboxCountViewer = styled('div', {
   borderRadius: '50%',
   background: '$danger',
@@ -82,14 +83,14 @@ const InboxCountViewer = styled('div', {
   display: 'flex',
   justifyContent: 'center',
   alignItems: 'center',
-})
+});
 const NotificationsButton = styled('button', {
   padding: 0,
   margin: 0,
   background: 'transparent',
   border: 'none',
   cursor: 'pointer',
-})
+});
 const DropDown = styled('div', {
   position: 'absolute',
   top: '40px',
@@ -100,19 +101,24 @@ const DropDown = styled('div', {
   borderRadius: '8px',
   padding: '8px 4px',
   paddingTop: '0px',
-})
+});
 
 export default function Container({ children }) {
   const navigate = useNavigate();
   const params = useParams();
   const domain = params.domain;
+  const {
+    selectedComponent,
+    elementsList,
+    setElementsList,
+  } = useContext(GlobalContext);
   const [user, loading] = useAuthState(auth);
   const { messagesInInbox } = useInbox();
   const { userDetails, updateNotificationPreferences } = useUser();
-  const [notificationsDropDown ,setNotificationsDropDown] = useState(false);
+  const [notificationsDropDown, setNotificationsDropDown] = useState(false);
   const toggleNotificationsDropDown = () => {
     setNotificationsDropDown(!notificationsDropDown);
-  }
+  };
   useEffect(() => {
     if (!loading && !user) {
       navigate('/');
@@ -127,68 +133,122 @@ export default function Container({ children }) {
     signOut(auth);
     navigate('/');
   };
-  useRegisterActions([
-    createAction({
-      name: 'Compose a new message',
-      shortcut: ['c'],
-      keywords: 'compose',
-      perform: () => navigate(`/${domain}/compose`),
-    }),
-    createAction({
-      name: 'Goto Inbox',
-      shortcut: ['g', 'i'],
-      keywords: 'inbox',
-      perform: () => navigate(`/${params.domain}/inbox/${user?.uid}`),
-    }),
-    createAction({
-      name: 'Logout',
-      shortcut: ['l', 'o'],
-      keywords: 'logout',
-      perform: () => handleLogout(),
-    }),
-    createAction({
-      name: 'Notifications and Preferences',
-      shortcut: ['n', 'p'],
-      keywords: 'preferences',
-      perform: () => toggleNotificationsDropDown(),
-    }),
-    createAction({
-      name: 'Set notifications to only when mentioned',
-      shortcut: ['n', 'm'],
-      keywords: 'only-when-mentioned',
-      perform: () => updateNotificationPreferences('only when mentioned'),
-    }),
-    createAction({
-      name: 'Set notifications to all posts',
-      shortcut: ['n', 'a'],
-      keywords: 'all-posts',
-      perform: () => updateNotificationPreferences('all posts'),
-    }),
-    createAction({
-      name: 'Go Back',
-      shortcut: ['<'],
-      keywords: 'back',
-      perform: () => navigate(-1),
-    }),
-  ], [user, params, notificationsDropDown, userDetails]);
+  const selectPreviousElement = () => {
+    console.log(selectedComponent,'<==');
+  }
+  const selecteNextElement = () => {
+    console.log(selectedComponent,'<==');
+  }
+  useRegisterActions(
+    [
+      createAction({
+        name: 'Compose a new message',
+        shortcut: ['c'],
+        keywords: 'compose',
+        perform: () => navigate(`/${domain}/compose`),
+      }),
+      createAction({
+        name: 'Goto Inbox',
+        shortcut: ['g', 'i'],
+        keywords: 'inbox',
+        perform: () => navigate(`/${params.domain}/inbox/${user?.uid}`),
+      }),
+      createAction({
+        name: 'Logout',
+        shortcut: ['l', 'o'],
+        keywords: 'logout',
+        perform: () => handleLogout(),
+      }),
+      createAction({
+        name: 'Notifications and Preferences',
+        shortcut: ['n', 'p'],
+        keywords: 'preferences',
+        perform: () => toggleNotificationsDropDown(),
+      }),
+      createAction({
+        name: 'Set notifications to only when mentioned',
+        shortcut: ['n', 'm'],
+        keywords: 'only-when-mentioned',
+        perform: () => updateNotificationPreferences('only when mentioned'),
+      }),
+      createAction({
+        name: 'Set notifications to all posts',
+        shortcut: ['n', 'a'],
+        keywords: 'all-posts',
+        perform: () => updateNotificationPreferences('all posts'),
+      }),
+      createAction({
+        name: 'Go Back',
+        shortcut: ['<'],
+        keywords: 'back',
+        perform: () => navigate(-1),
+      }),
+      createAction({
+        name: 'Previous Item',
+        shortcut: ['p'],
+        keywords: 'previous-item',
+        perform: () => selectPreviousElement(),
+      }),
+      createAction({
+        name: 'Next Item',
+        shortcut: ['n'],
+        keywords: 'next-item',
+        perform: () => selecteNextElement(),
+      })
+    ],
+    [user, params, notificationsDropDown, userDetails, elementsList, selectedComponent],
+  );
+
+  useEffect(() => {
+    const elements = [
+      'container-eyebrow',
+      'inbox-link',
+      'notifications-toggle',
+      'notifications-only-when-mentioned',
+      'notifications-all-posts',
+    ];
+    let tempElementsList = elementsList;
+    tempElementsList.push(...elements);
+    setElementsList([...tempElementsList]);
+  }, []);
   return (
     <Wrapper>
       <SideBar>
         <TopBar>
-          <Eyebrow>Comms</Eyebrow>
+          <Eyebrow id="container-eyebrow">Comms</Eyebrow>
         </TopBar>
         <LinkWrapper>
-          <Link to={`/${domain}/inbox/${user?.uid}`}>
-            Inbox - <InboxCountViewer>{messagesInInbox ?? '0'}</InboxCountViewer>
+          <Link id="inbox-link" to={`/${domain}/inbox/${user?.uid}`}>
+            Inbox -{' '}
+            <InboxCountViewer>{messagesInInbox ?? '0'}</InboxCountViewer>
           </Link>
-          <NotificationsButton onClick={toggleNotificationsDropDown}>
-            <img src={NotificationIcon} width={28} height={28} alt="Edit notification permissions"/>
+          <NotificationsButton
+            id="notifications-toggle"
+            onClick={toggleNotificationsDropDown}
+          >
+            <img
+              src={NotificationIcon}
+              width={28}
+              height={28}
+              alt="Edit notification permissions"
+            />
           </NotificationsButton>
-          { notificationsDropDown ?(
-          <DropDown>
-            <Button inactive>Only When Mentioned {userDetails?.notifications === 'only when mentioned' ? ' (selected)' : ''}</Button>
-            <Button inactive>All Posts {userDetails?.notifications === 'all posts' ? ' (selected)' : ''}</Button>
-          </DropDown>) : null}
+          {notificationsDropDown ? (
+            <DropDown>
+              <Button id="notifications-only-when-mentioned" inactive>
+                Only When Mentioned{' '}
+                {userDetails?.notifications === 'only when mentioned'
+                  ? ' (selected)'
+                  : ''}
+              </Button>
+              <Button id="notifications-all-posts" inactive>
+                All Posts{' '}
+                {userDetails?.notifications === 'all posts'
+                  ? ' (selected)'
+                  : ''}
+              </Button>
+            </DropDown>
+          ) : null}
         </LinkWrapper>
         <ChannelList />
       </SideBar>

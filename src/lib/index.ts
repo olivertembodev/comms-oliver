@@ -25,6 +25,30 @@ export const mentionsTextParser = (text: string) => {
   };
 };
 
+export const ToListParser = (text: string) => {
+  let message = text;
+  const toListRegexp = RegExp(/(@+[[a-z0-9\s]+\]\([a-z0-9_-]+\))/gi);
+  const recipientsList = [];
+  const allRecipients = [...message.matchAll(toListRegexp)];
+  allRecipients.map((recipient) => {
+    const channelName = recipient[1].substring(
+      recipient[1].indexOf('[') + 1,
+      recipient[1].indexOf(']'),
+    );
+    const channelID = recipient[1].substring(
+      recipient[1].indexOf('(') + 1,
+      recipient[1].indexOf(')'),
+    );
+    recipientsList.push({
+      channelName,
+      channelID,
+    });
+  });
+  return {
+    recipientsList,
+  };
+};
+
 export const transformMentionDisplay = (id: string, display: string) => {
   return display.split(' ')[0];
-}
+};

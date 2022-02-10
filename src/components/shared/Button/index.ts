@@ -42,6 +42,11 @@ const Button = styled('button', {
         background: '$light_green',
         color: '$secondary',
       }
+    },
+    isActiveComponent: {
+      true: {
+        boxShadow: '0px 0px 0px 8px rgba(0,0,0,1)',
+      }
     }
   },
 });
