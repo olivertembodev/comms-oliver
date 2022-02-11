@@ -1,3 +1,5 @@
+/* eslint-disable array-callback-return */
+/* eslint-disable react-hooks/exhaustive-deps */
 import { styled } from '../../lib/stitches.config';
 import Container from 'components/Container';
 import { useFormik } from 'formik';
@@ -6,9 +8,10 @@ import useSingleChannel from 'hooks/useSingleChannel';
 import { Link, useParams } from 'react-router-dom';
 import Button from 'components/shared/Button';
 import { Form, InputField, TextArea } from 'components/shared/Form';
-import { useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createAction, useRegisterActions } from 'kbar';
+import { GlobalContext } from 'context/GlobalState';
 
 const Wrapper = styled('div', {
   paddingX: '16px',
@@ -43,6 +46,12 @@ const ListItem = styled('li', {
         backgroundColor: 'rgba(0, 0, 0, 0.1)',
       },
     },
+    isActiveComponent: {
+      true: {
+        backgroundColor: 'rgba(0,0,0,0.45)',
+        borderRadius: '4px',
+      }
+    }
   },
 });
 const ListItemTextWrapper = styled('div', { paddingX: '24px' });
@@ -65,7 +74,8 @@ const SecondaryText = styled('p', {
 export default function Post() {
   const navigate = useNavigate();
   const params = useParams();
-  const { results, create, domain, channel } = usePost(params.channel);
+  const { results, create, domain, channel, loading } = usePost(params.channel);
+  const { elementsList, selectedComponent, setElementsList } = useContext(GlobalContext);
   const [selectedPost, setSelectedPost] = useState(0);
   const inputRef = useRef(null);
   const { value } = useSingleChannel();
@@ -89,7 +99,6 @@ export default function Post() {
       setSelectedPost(selectedPost + 1);
     }
   };
-  
   useRegisterActions(
     [
       createAction({
@@ -119,6 +128,34 @@ export default function Post() {
     ],
     [selectedPost, results],
   );
+  useEffect(() =>{
+    if (results?.length) {
+      let tempElementsList = [...elementsList];
+      results.map((post, index) => {
+          const postID = `--pid--${post.id}-i-${index}`;
+          if (!tempElementsList.includes(postID)) {
+            tempElementsList.push(postID);
+          }
+      });
+      setElementsList([...tempElementsList]);
+    }
+  },[loading])
+
+  useEffect(() => {
+    return () => {
+      if (elementsList.length) {
+        const tempElementsList = [...elementsList];
+        const itemsToRemove = elementsList.filter((element) => element.includes('--pid--'));
+        itemsToRemove.map((element) => {
+          if (elementsList.includes(element)) {
+            const index = elementsList.indexOf(element);
+            tempElementsList.splice(index, 1);
+          }
+        });
+        setElementsList([...tempElementsList]);
+      }
+    }
+  }, []);
 
   return (
     <Container>
@@ -128,7 +165,7 @@ export default function Post() {
         </Wrapper>
         <List>
           {results.map((item, index) => (
-            <ListItem key={item.id} isSelected={index === selectedPost}>
+            <ListItem key={item.id} isSelected={index === selectedPost} isActiveComponent={selectedComponent === `--pid--${item.id}-i-${index}`}>
               <Link to={`/${domain}/${channel}/${item.id}`}>
                 <ListItemTextWrapper>
                   <PrimaryText>{item.subject}</PrimaryText>

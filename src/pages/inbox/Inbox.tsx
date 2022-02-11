@@ -1,3 +1,4 @@
+/* eslint-disable array-callback-return */
 /* eslint-disable react-hooks/exhaustive-deps */
 import { styled } from '../../lib/stitches.config';
 import Container from 'components/Container';
@@ -5,8 +6,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import Button from 'components/shared/Button';
 import useInbox from 'hooks/useInbox';
 import { mentionsTextParser } from 'lib';
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { createAction, useRegisterActions } from 'kbar';
+import { GlobalContext } from 'context/GlobalState';
 
 const Wrapper = styled('div', { paddingX: '16px' });
 const Heading3 = styled('h3', {
@@ -40,6 +42,12 @@ const ListItem = styled('li', {
         backgroundColor: 'rgba(0, 0, 0, 0.1)',
       },
     },
+    isActiveComponent: {
+      true: {
+        backgroundColor: 'rgba(0,0,0,0.45)',
+        borderRadius: '4px',
+      }
+    }
   },
 });
 const ListItemTextWrapper = styled('div', {
@@ -109,6 +117,7 @@ const ButtonsWrapper = styled('div', {
 
 export default function Inbox() {
   const { inbox, markMessageAsDone, loading } = useInbox();
+  const { selectedComponent, elementsList, setElementsList } = useContext(GlobalContext);
   const [selectedInboxItem, setSelectedInboxItem] = useState(0);
   const navigate = useNavigate();
   const nextItem = () => {
@@ -151,7 +160,28 @@ export default function Inbox() {
   ], [selectedInboxItem, inbox]);
   useEffect(() => {
     setSelectedInboxItem(inbox.length - 1);
+    if (inbox.length) {
+      let tempElementsList = [...elementsList];
+      inbox.map((message, index) => {
+        if (!elementsList.includes(`inbox-${message.channel}-domain-${message.domain}-post-${message.post}-index-${index}`)) {
+          tempElementsList.push(`inbox-${message.channel}-domain-${message.domain}-post-${message.post}-index-${index}`);
+        }
+      });
+      setElementsList([...tempElementsList]);
+    }
   }, [inbox]);
+
+  useEffect(() => {
+    return () => {
+      let tempElementsList = [...elementsList];
+        inbox.map((message, index) => {
+          if (elementsList.includes(`inbox-${message.channel}-domain-${message.domain}-post-${message.post}-index-${index}`)) {
+            tempElementsList.splice(elementsList.indexOf(`inbox-${message.channel}-domain-${message.domain}-post-${message.post}-index-${index}`) , 1);
+          }
+        })
+        setElementsList([...tempElementsList])
+    }
+  }, []);
   return (
     <Container>
       <div>
@@ -163,7 +193,7 @@ export default function Inbox() {
             inbox.map((item, index) => {
               if (item.isDone) return null;
               return (
-                <ListItem key={index} isSelected={index === selectedInboxItem}>
+                <ListItem key={index} isSelected={index === selectedInboxItem} isActiveComponent={selectedComponent === `inbox-${item.channel}-domain-${item.domain}-post-${item.post}-index-${index}`}>
                   <Link to={`/@${item.domain}/${item.channel}/${item.post}`}>
                     <ListItemTextWrapper>
                       <ListWrapper>

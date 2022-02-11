@@ -1,3 +1,4 @@
+/* eslint-disable array-callback-return */
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useContext, useEffect, useState } from 'react';
 import { styled } from '../lib/stitches.config';
@@ -59,12 +60,28 @@ const LinkWrapper = styled('div', {
   '&:hover': {
     backgroundColor: 'rgba(0, 0, 0, 0.04)',
   },
+  variants: {
+    isActiveComponent: {
+      true: {
+        boxShadow: '0px 0px 0px 2px rgba(0,0,0,0.4)',
+        borderRadius: '4px'
+      }
+    }
+  }
 });
 const Eyebrow = styled('p', {
   fontSize: '16px',
   lineHeight: '24px',
   color: '$secondary',
   margin: 0,
+  variants: {
+    isActiveComponent: {
+      true: {
+        boxShadow: '0px 0px 0px 2px rgba(0,0,0,0.4)',
+        borderRadius: '4px'
+      }
+    }
+  }
 });
 const ChildrenWrapper = styled('div', {
   background: '$primary',
@@ -90,6 +107,14 @@ const NotificationsButton = styled('button', {
   background: 'transparent',
   border: 'none',
   cursor: 'pointer',
+  variants: {
+    isActiveComponent: {
+      true: {
+        boxShadow: '0px 0px 0px 2px rgba(0,0,0,0.4)',
+        borderRadius: '4px'
+      }
+    }
+  }
 });
 const DropDown = styled('div', {
   position: 'absolute',
@@ -111,6 +136,7 @@ export default function Container({ children }) {
     selectedComponent,
     elementsList,
     setElementsList,
+    setSelectedComponent,
   } = useContext(GlobalContext);
   const [user, loading] = useAuthState(auth);
   const { messagesInInbox } = useInbox();
@@ -134,11 +160,71 @@ export default function Container({ children }) {
     navigate('/');
   };
   const selectPreviousElement = () => {
-    console.log(selectedComponent,'<==');
+    const indexOfCurrentElement = elementsList.indexOf(selectedComponent);
+    if (indexOfCurrentElement) {
+      setSelectedComponent(elementsList[indexOfCurrentElement - 1]);
+      if (elementsList[indexOfCurrentElement - 1] === 'notifications-only-when-mentioned' || elementsList[indexOfCurrentElement - 1] === 'notifications-all-posts') {
+        if (!notificationsDropDown) {
+          toggleNotificationsDropDown();          
+        }
+      } else {
+        setNotificationsDropDown(false);
+      }
+    }
   }
   const selecteNextElement = () => {
-    console.log(selectedComponent,'<==');
+    const indexOfCurrentElement = elementsList.indexOf(selectedComponent);
+    if (indexOfCurrentElement > -1 && indexOfCurrentElement < elementsList.length - 1) {
+      setSelectedComponent(elementsList[indexOfCurrentElement + 1]);
+      if (elementsList[indexOfCurrentElement + 1] === 'notifications-only-when-mentioned' || elementsList[indexOfCurrentElement + 1] === 'notifications-all-posts') {
+        if (!notificationsDropDown) {
+          toggleNotificationsDropDown();          
+        }
+      } else {
+        setNotificationsDropDown(false);
+      }
+    }
   }
+  const performSelectedAction = () => {
+    switch (selectedComponent) {
+      case 'container-eyebrow': {
+        navigate(`/${domain}`);
+        break;
+      }
+      case 'inbox-link': {
+        navigate(`/${params.domain}/inbox/${user?.uid}`)
+        break;
+      }
+      case 'notifications-toggle': {
+        toggleNotificationsDropDown();
+        break;
+      }
+      case 'notifications-only-when-mentioned': {
+        updateNotificationPreferences('only when mentioned');
+        return;
+      }
+      case 'notifications-all-posts': {
+        updateNotificationPreferences('all posts');
+        return;
+      }
+      default: {
+        if (selectedComponent.includes('channel-')) {
+          navigate(`/${domain}/${selectedComponent.replace('channel-', '')}`);
+        } else if (selectedComponent.includes('inbox-') && selectedComponent.includes('post-')) {
+          const channel = selectedComponent.substring(6, selectedComponent.indexOf('-',6));
+          const domainIndex = selectedComponent.indexOf('-domain-');
+          const postIndex = selectedComponent.indexOf('-post-');
+          const indexIndex = selectedComponent.indexOf('-index-');
+          const domain = selectedComponent.substring(domainIndex + 8, selectedComponent.indexOf('-', postIndex));
+          const post = selectedComponent.substring(postIndex + 6, selectedComponent.indexOf('-', indexIndex))
+          navigate(`/@${domain}/${channel}/${post}`);
+        } else if (selectedComponent.includes('--pid--')) {
+          const postID = selectedComponent.substring(7, selectedComponent.indexOf('-', 7));
+          navigate(`/${params.domain}/${params.channel}/${postID}`);
+        }
+      }
+    }
+  };
   useRegisterActions(
     [
       createAction({
@@ -161,19 +247,19 @@ export default function Container({ children }) {
       }),
       createAction({
         name: 'Notifications and Preferences',
-        shortcut: ['n', 'p'],
+        shortcut: ['r'],
         keywords: 'preferences',
         perform: () => toggleNotificationsDropDown(),
       }),
       createAction({
         name: 'Set notifications to only when mentioned',
-        shortcut: ['n', 'm'],
+        shortcut: ['m', 'n'],
         keywords: 'only-when-mentioned',
         perform: () => updateNotificationPreferences('only when mentioned'),
       }),
       createAction({
         name: 'Set notifications to all posts',
-        shortcut: ['n', 'a'],
+        shortcut: ['a', 'n'],
         keywords: 'all-posts',
         perform: () => updateNotificationPreferences('all posts'),
       }),
@@ -194,11 +280,16 @@ export default function Container({ children }) {
         shortcut: ['n'],
         keywords: 'next-item',
         perform: () => selecteNextElement(),
+      }),
+      createAction({
+        name: 'Select current selection',
+        shortcut: ['enter'],
+        keywords: 'Enter',
+        perform: () => performSelectedAction(),
       })
     ],
     [user, params, notificationsDropDown, userDetails, elementsList, selectedComponent],
   );
-
   useEffect(() => {
     const elements = [
       'container-eyebrow',
@@ -208,22 +299,30 @@ export default function Container({ children }) {
       'notifications-all-posts',
     ];
     let tempElementsList = elementsList;
-    tempElementsList.push(...elements);
+    elements.map((element) => {
+      if (!elementsList.includes(element)) {
+        tempElementsList.push(element);
+      }
+    })
     setElementsList([...tempElementsList]);
+    if (!selectedComponent || selectedComponent === 'login-button') {
+      setSelectedComponent(tempElementsList[0]);
+    }
   }, []);
   return (
     <Wrapper>
       <SideBar>
         <TopBar>
-          <Eyebrow id="container-eyebrow">Comms</Eyebrow>
+          <Eyebrow isActiveComponent={selectedComponent === 'container-eyebrow'} id="container-eyebrow">Comms</Eyebrow>
         </TopBar>
-        <LinkWrapper>
+        <LinkWrapper isActiveComponent={selectedComponent === 'inbox-link'}>
           <Link id="inbox-link" to={`/${domain}/inbox/${user?.uid}`}>
             Inbox -{' '}
             <InboxCountViewer>{messagesInInbox ?? '0'}</InboxCountViewer>
           </Link>
           <NotificationsButton
             id="notifications-toggle"
+            isActiveComponent={selectedComponent === 'notifications-toggle'}
             onClick={toggleNotificationsDropDown}
           >
             <img
@@ -235,13 +334,13 @@ export default function Container({ children }) {
           </NotificationsButton>
           {notificationsDropDown ? (
             <DropDown>
-              <Button id="notifications-only-when-mentioned" inactive>
+              <Button id="notifications-only-when-mentioned" inactive isActiveComponent={selectedComponent === 'notifications-only-when-mentioned'}>
                 Only When Mentioned{' '}
                 {userDetails?.notifications === 'only when mentioned'
                   ? ' (selected)'
                   : ''}
               </Button>
-              <Button id="notifications-all-posts" inactive>
+              <Button id="notifications-all-posts" inactive isActiveComponent={selectedComponent === 'notifications-all-posts'}>
                 All Posts{' '}
                 {userDetails?.notifications === 'all posts'
                   ? ' (selected)'

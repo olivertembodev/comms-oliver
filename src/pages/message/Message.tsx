@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { MentionsInput, Mention } from 'react-mentions';
 import { styled } from '../../lib/stitches.config';
 import Container from 'components/Container';
@@ -7,10 +8,11 @@ import useUser from 'hooks/useUser';
 import useSinglePost from 'hooks/useSinglePost';
 import { Form } from '../../components/shared/Form';
 import '../../styles/mentions.css';
-import { useEffect, useRef } from 'react';
+import { useContext, useEffect, useRef } from 'react';
 import useUsers from 'hooks/useUsers';
 import { mentionsTextParser, transformMentionDisplay } from 'lib';
 import useChannel from 'hooks/useChannel';
+import { GlobalContext } from 'context/GlobalState';
 
 const Wrapper = styled('div', {
   paddingX: '16px',
@@ -85,6 +87,7 @@ export default function Message() {
   const { value } = useSinglePost();
   const { results, create } = useMessage();
   const { currentChannel } = useChannel();
+  const { selectedComponent, setSelectedComponent }  = useContext(GlobalContext);
   const messagesContainerRef = useRef(null);
   const { users } = useUsers();
   const { user } = useUser();
@@ -105,6 +108,12 @@ export default function Message() {
       scrollToBottom();
     }
   }, [results]);
+
+  useEffect(() => {
+    if (selectedComponent?.includes('inbox')) {
+      setSelectedComponent('container-eyebrow');
+    }
+  }, []);
 
   return (
     <Container>

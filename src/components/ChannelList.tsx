@@ -1,11 +1,14 @@
+/* eslint-disable array-callback-return */
+/* eslint-disable react-hooks/exhaustive-deps */
 import useChannel from 'hooks/useChannel';
 import { Link } from 'react-router-dom';
 import { styled } from '../lib/stitches.config';
 import { useFormik } from 'formik';
 import { Form, InputField } from './shared/Form';
 import { createAction, useRegisterActions } from 'kbar';
-import { useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { GlobalContext } from 'context/GlobalState';
 
 const Wrapper = styled('div', { paddingY: '16px' });
 const List = styled('ul', {
@@ -28,6 +31,12 @@ const ListItem = styled('li', {
         backgroundColor: 'rgba(0, 0, 0, 0.1)',
       },
     },
+    isActiveComponent: {
+      true: {
+        backgroundColor: 'rgba(0,0,0,0.45)',
+        borderRadius: '4px',
+      }
+    }
   },
 });
 const HeadingWrapper = styled('p', {
@@ -45,7 +54,8 @@ export default function ChannelList() {
   const navigate = useNavigate();
   const inputRef = useRef(null);
   const containerRef = useRef(null);
-  const { create, results, domain } = useChannel();
+  const { create, results, domain, loading } = useChannel();
+  const { setElementsList, elementsList, selectedComponent } = useContext(GlobalContext);
   const [selectedChannel, setSelectedChannel] = useState(0);
   const { values, handleSubmit, handleChange } = useFormik({
     initialValues: {
@@ -54,7 +64,6 @@ export default function ChannelList() {
     onSubmit: (values, { resetForm }) => {
       create(values.channel);
       resetForm();
-      inputRef.current.blur();
     },
   });
   const nextItem = () => {
@@ -98,12 +107,34 @@ export default function ChannelList() {
     ],
     [selectedChannel, results, inputRef],
   );
+  useEffect(() => {
+    let tempElementsList = [...elementsList];
+    const tempResults = [...results];
+    if (tempResults?.length) {
+        tempResults.map((channel) => {
+          if (!tempElementsList.includes(`channel-${channel.id}`)) {
+            tempElementsList.push(`channel-${channel.id}`);
+          }
+        });
+        if (!tempElementsList.includes('new-channel-input')){
+          tempElementsList.push('new-channel-input');
+        };
+        setElementsList([...tempElementsList]);
+      }
+  }, [loading]);
+  useEffect(() => {
+    if (inputRef?.current && selectedComponent === 'new-channel-input') {
+      inputRef.current.focus();
+    } else {
+      inputRef.current.blur();
+    }
+  }, [inputRef, selectedComponent])
   return (
     <Wrapper>
       <HeadingWrapper>Channels:</HeadingWrapper>
       <List ref={containerRef}>
         {results.map((item, index) => (
-          <ListItem key={item.id} isSelected={index === selectedChannel}>
+          <ListItem key={item.id} isSelected={index === selectedChannel} isActiveComponent={selectedComponent === `channel-${item.id}`}>
             <Link to={`/${domain}/${item.id}`}>#{item.name}</Link>
           </ListItem>
         ))}
@@ -113,6 +144,7 @@ export default function ChannelList() {
           ref={inputRef}
           placeholder="Input new channel"
           name="channel"
+          id="new-channel-input"
           required
           onChange={handleChange}
           value={values.channel}

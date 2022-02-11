@@ -13,7 +13,7 @@ import { doc, writeBatch } from 'firebase/firestore';
 import { useParams } from 'react-router-dom';
 import { uid } from 'uid';
 import useUser from 'hooks/useUser';
-import Button from 'components/shared/Button';
+import { createAction, useRegisterActions } from 'kbar';
 
 const SuggesstionItem = styled('div', {
   display: 'flex',
@@ -88,6 +88,14 @@ const Compose = () => {
       });
     }
   };
+  useRegisterActions([
+    createAction({
+      name: 'Submit Post',
+      shortcut: ['h', 's'],
+      keywords: 'submit',
+      perform: () => handleSubmit(),
+    }),
+  ], []);
 
   return (
     <Container>
@@ -134,7 +142,6 @@ const Compose = () => {
             onChange={handleChange}
             value={values.body}
           />
-          <Button type="submit">Submit</Button>
         </Form>
       </div>
     </Container>
