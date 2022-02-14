@@ -6,8 +6,7 @@ import { styled } from '../lib/stitches.config';
 import { useFormik } from 'formik';
 import { Form, InputField } from './shared/Form';
 import { createAction, useRegisterActions } from 'kbar';
-import { useContext, useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useContext, useEffect, useRef } from 'react';
 import { GlobalContext } from 'context/GlobalState';
 
 const Wrapper = styled('div', { paddingY: '16px' });
@@ -22,19 +21,10 @@ const ListItem = styled('li', {
   padding: '6px 24px',
   cursor: 'pointer',
   color: '$secondary',
-  '&:hover': {
-    backgroundColor: 'rgba(0, 0, 0, 0.04)',
-  },
   variants: {
-    isSelected: {
-      true: {
-        backgroundColor: 'rgba(0, 0, 0, 0.1)',
-      },
-    },
     isActiveComponent: {
       true: {
-        backgroundColor: 'rgba(0,0,0,0.45)',
-        borderRadius: '4px',
+        backgroundColor: 'rgba(0,0,0,0.20)',
       }
     }
   },
@@ -51,12 +41,10 @@ const HeadingWrapper = styled('p', {
 });
 
 export default function ChannelList() {
-  const navigate = useNavigate();
   const inputRef = useRef(null);
   const containerRef = useRef(null);
   const { create, results, domain, loading } = useChannel();
   const { setElementsList, elementsList, selectedComponent } = useContext(GlobalContext);
-  const [selectedChannel, setSelectedChannel] = useState(0);
   const { values, handleSubmit, handleChange } = useFormik({
     initialValues: {
       channel: '',
@@ -66,38 +54,8 @@ export default function ChannelList() {
       resetForm();
     },
   });
-  const nextItem = () => {
-    if (results.length > selectedChannel + 1) {
-      setSelectedChannel(selectedChannel + 1);
-      containerRef.current.scrollTop += 24;
-    }
-  };
-  const previousItem = () => {
-    if (selectedChannel) {
-      setSelectedChannel(selectedChannel - 1);
-      containerRef.current.scrollTop -= 24;
-    }
-  };
   useRegisterActions(
     [
-      createAction({
-        name: 'Move to next channel',
-        shortcut: ['s'],
-        keywords: 'next',
-        perform: () => nextItem(),
-      }),
-      createAction({
-        name: 'Move to previous channel',
-        shortcut: ['w'],
-        keywords: 'previous',
-        perform: () => previousItem(),
-      }),
-      createAction({
-        name: 'Goto Selected Channel',
-        shortcut: ['g', 'c'],
-        keywords: 'channel',
-        perform: () => results?.length ? navigate(`/${domain}/${results[selectedChannel].id}`) : null,
-      }),
       createAction({
         name: 'Add a new channel',
         shortcut: ['a', 'c'],
@@ -105,7 +63,7 @@ export default function ChannelList() {
         perform: () => inputRef.current.focus(),
       }),
     ],
-    [selectedChannel, results, inputRef],
+    [results, inputRef],
   );
   useEffect(() => {
     let tempElementsList = [...elementsList];
@@ -134,7 +92,7 @@ export default function ChannelList() {
       <HeadingWrapper>Channels:</HeadingWrapper>
       <List ref={containerRef}>
         {results.map((item, index) => (
-          <ListItem key={item.id} isSelected={index === selectedChannel} isActiveComponent={selectedComponent === `channel-${item.id}`}>
+          <ListItem key={item.id} isActiveComponent={selectedComponent === `channel-${item.id}`}>
             <Link to={`/${domain}/${item.id}`}>#{item.name}</Link>
           </ListItem>
         ))}

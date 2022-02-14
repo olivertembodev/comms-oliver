@@ -129,7 +129,7 @@ export default function Message() {
               <ListItemTextWrapper>
                 <PrimaryText
                   dangerouslySetInnerHTML={{
-                    __html: mentionsTextParser(item.text).message,
+                    __html: mentionsTextParser(item.body).message,
                   }}
                 ></PrimaryText>
                 <SecondaryText>{`From: ${

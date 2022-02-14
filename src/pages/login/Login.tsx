@@ -7,8 +7,6 @@ import { auth, firestore } from 'lib/firebase';
 import { setDoc, doc, getDoc } from 'firebase/firestore';
 import { createAction, useRegisterActions } from 'kbar';
 import Button from 'components/shared/Button';
-import { useContext } from 'react';
-import { GlobalContext } from 'context/GlobalState';
 
 const Wrapper = styled('div', {
   container: 'none',
@@ -22,7 +20,6 @@ const Form = styled('form', {
 const Login = () => {
   const navigate = useNavigate();
   const [signInWithGoogle, user, loading] = useSignInWithGoogle(auth);
-  const { selectedComponent, setSelectedComponent } = useContext(GlobalContext);
   useEffect(() => {
     if (user?.user) {
       const fetchUser = async () => {
@@ -53,12 +50,6 @@ const Login = () => {
       keywords: 'Login',
       perform: () => signInWithGoogle(),
     }),
-    createAction({
-      name: 'Select current selection',
-      shortcut: ['enter'],
-      keywords: 'Enter',
-      perform: () => signInWithGoogle(),
-    })
   ], [signInWithGoogle]);
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -66,15 +57,11 @@ const Login = () => {
       signInWithGoogle();
     }
   };
-
-  useEffect(() => {
-    setSelectedComponent('login-button');
-  }, []);
   return (
     <Wrapper>
       <Form onSubmit={handleSubmit}>
-        <Button id="login-button" isActiveComponent={selectedComponent === "login-button"} type="button">
-          Hit Command+K or L+G to login using google
+        <Button id="login-button" type="button">
+          Hit Command+K to login using google
         </Button>
       </Form>
     </Wrapper>

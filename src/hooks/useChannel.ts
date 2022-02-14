@@ -36,8 +36,8 @@ export default function useChannel() {
     name: doc.get("name")
   }))
   const suggesstions = value?.docs?.map(doc => ({
-    id: doc.id,
-    display: doc.get("name")
+    value: doc.id,
+    label: doc.get("name")
   }))
 
   const currentChannel = results?.filter((item) => item.id === channel);;

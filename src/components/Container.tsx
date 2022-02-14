@@ -63,8 +63,7 @@ const LinkWrapper = styled('div', {
   variants: {
     isActiveComponent: {
       true: {
-        boxShadow: '0px 0px 0px 2px rgba(0,0,0,0.4)',
-        borderRadius: '4px'
+        backgroundColor: 'rgba(0,0,0,0.20)',
       }
     }
   }
@@ -74,11 +73,11 @@ const Eyebrow = styled('p', {
   lineHeight: '24px',
   color: '$secondary',
   margin: 0,
+  padding: '0px 4px',
   variants: {
     isActiveComponent: {
       true: {
-        boxShadow: '0px 0px 0px 2px rgba(0,0,0,0.4)',
-        borderRadius: '4px'
+        backgroundColor: 'rgba(0,0,0,0.20)',
       }
     }
   }
@@ -102,7 +101,7 @@ const InboxCountViewer = styled('div', {
   alignItems: 'center',
 });
 const NotificationsButton = styled('button', {
-  padding: 0,
+  padding: '2px',
   margin: 0,
   background: 'transparent',
   border: 'none',
@@ -110,8 +109,7 @@ const NotificationsButton = styled('button', {
   variants: {
     isActiveComponent: {
       true: {
-        boxShadow: '0px 0px 0px 2px rgba(0,0,0,0.4)',
-        borderRadius: '4px'
+        backgroundColor: 'rgba(0,0,0,0.20)',
       }
     }
   }

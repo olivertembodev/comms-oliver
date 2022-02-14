@@ -1,18 +1,18 @@
 import { styled } from '../../../lib/stitches.config';
 const Button = styled('button', {
-  backgroundColor: '$dark_green',
+  backgroundColor: 'transparent',
   borderRadius: '4px',
   fontSize: '0.875rem',
   lineHeight: '1.75',
   width: '100%',
-  border: 'none',
   boxShadow: 'none',
   marginTop: '16px',
   transition: 'all',
-  transitionDuration: '200ms',
+  transitionDuration: '150ms',
   cursor: 'pointer',
+  border: '1px solid $secondary',
   minWidth: '64px',
-  color: '$primary',
+  color: '$secondary',
   paddingX: '16px',
   paddingY: '6px',
   '&:hover': {
@@ -45,7 +45,15 @@ const Button = styled('button', {
     },
     isActiveComponent: {
       true: {
-        boxShadow: '0px 0px 0px 8px rgba(0,0,0,1)',
+        backgroundColor: 'rgba(0,0,0,0.45)',
+      }
+    },
+    isHidden: {
+      true: {
+        border: 'none',
+        padding: 0,
+        margin: 0,
+        boxShadow: 'none',
       }
     }
   },

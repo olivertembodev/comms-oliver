@@ -8,8 +8,7 @@ import useSingleChannel from 'hooks/useSingleChannel';
 import { Link, useParams } from 'react-router-dom';
 import Button from 'components/shared/Button';
 import { Form, InputField, TextArea } from 'components/shared/Form';
-import { useContext, useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useContext, useEffect, useRef } from 'react';
 import { createAction, useRegisterActions } from 'kbar';
 import { GlobalContext } from 'context/GlobalState';
 
@@ -34,21 +33,13 @@ const ListItem = styled('li', {
   margin: 0,
   borderBottom: '1px solid rgba(0, 0, 0, 0.12)',
   padding: '24px 0px',
-  '&:hover': {
-    backgroundColor: 'rgba(0, 0, 0, 0.04)',
-  },
   '& > a': {
     textDecoration: 'none',
   },
   variants: {
-    isSelected: {
-      true: {
-        backgroundColor: 'rgba(0, 0, 0, 0.1)',
-      },
-    },
     isActiveComponent: {
       true: {
-        backgroundColor: 'rgba(0,0,0,0.45)',
+        backgroundColor: 'rgba(0,0,0,0.20)',
         borderRadius: '4px',
       }
     }
@@ -72,11 +63,9 @@ const SecondaryText = styled('p', {
   textDecoration: 'none',
 });
 export default function Post() {
-  const navigate = useNavigate();
   const params = useParams();
   const { results, create, domain, channel, loading } = usePost(params.channel);
-  const { elementsList, selectedComponent, setElementsList } = useContext(GlobalContext);
-  const [selectedPost, setSelectedPost] = useState(0);
+  const { elementsList, selectedComponent, setElementsList, setSelectedComponent } = useContext(GlobalContext);
   const inputRef = useRef(null);
   const { value } = useSingleChannel();
   const { values, handleChange, handleSubmit } = useFormik({
@@ -89,36 +78,8 @@ export default function Post() {
       resetForm();
     },
   });
-  const previousItem = () => {
-    if (selectedPost) {
-      setSelectedPost(selectedPost - 1);
-    }
-  };
-  const nextItem = () => {
-    if (results.length > selectedPost + 1) {
-      setSelectedPost(selectedPost + 1);
-    }
-  };
   useRegisterActions(
     [
-      createAction({
-        name: 'Move to next post',
-        shortcut: ['x'],
-        keywords: 'next',
-        perform: () => nextItem(),
-      }),
-      createAction({
-        name: 'Move to previous post',
-        shortcut: ['z'],
-        keywords: 'previous',
-        perform: () => previousItem(),
-      }),
-      createAction({
-        name: 'Goto Selected Post',
-        shortcut: ['g', 'p'],
-        keywords: 'selected-post',
-        perform: () => results?.length ? navigate(`/${domain}/${channel}/${results[selectedPost].id}`) : null,
-      }),
       createAction({
         name: 'Add a new post',
         shortcut: ['a', 'p'],
@@ -126,36 +87,19 @@ export default function Post() {
         perform: () => inputRef.current.focus(),
       }),
     ],
-    [selectedPost, results],
+    [inputRef],
   );
   useEffect(() =>{
     if (results?.length) {
-      let tempElementsList = [...elementsList];
+      let tempElementsList = [...elementsList.filter((item) => !item.includes('-post-') && !item.includes('--pid--'))];
       results.map((post, index) => {
           const postID = `--pid--${post.id}-i-${index}`;
-          if (!tempElementsList.includes(postID)) {
-            tempElementsList.push(postID);
-          }
+          tempElementsList.push(postID);
       });
+      setSelectedComponent(tempElementsList[tempElementsList.length - results.length]);
       setElementsList([...tempElementsList]);
     }
   },[loading])
-
-  useEffect(() => {
-    return () => {
-      if (elementsList.length) {
-        const tempElementsList = [...elementsList];
-        const itemsToRemove = elementsList.filter((element) => element.includes('--pid--'));
-        itemsToRemove.map((element) => {
-          if (elementsList.includes(element)) {
-            const index = elementsList.indexOf(element);
-            tempElementsList.splice(index, 1);
-          }
-        });
-        setElementsList([...tempElementsList]);
-      }
-    }
-  }, []);
 
   return (
     <Container>
@@ -165,7 +109,7 @@ export default function Post() {
         </Wrapper>
         <List>
           {results.map((item, index) => (
-            <ListItem key={item.id} isSelected={index === selectedPost} isActiveComponent={selectedComponent === `--pid--${item.id}-i-${index}`}>
+            <ListItem key={item.id} isActiveComponent={selectedComponent === `--pid--${item.id}-i-${index}`}>
               <Link to={`/${domain}/${channel}/${item.id}`}>
                 <ListItemTextWrapper>
                   <PrimaryText>{item.subject}</PrimaryText>

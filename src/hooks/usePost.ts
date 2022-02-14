@@ -1,4 +1,4 @@
-import { addDoc, collection } from "firebase/firestore";
+import { addDoc, collection, query, serverTimestamp, where } from "firebase/firestore";
 import { auth, firestore } from "lib/firebase";
 import { useParams } from 'react-router-dom';
 import { useCollection } from 'react-firebase-hooks/firestore';
@@ -10,19 +10,22 @@ export default function usePost(channelId: string) {
   const params = useParams();
   const domain = params.domain;
   const channel = channelId;
-  const col = collection(firestore, `channels`, `domain`, `${domain.replace("@","")}`, channel, "posts")
-  
+  const queryPosts = where('originalPost', '==', true);
+  const col = query(collection(firestore, `channels`, `domain`, `${domain.replace("@","")}`, channel, "posts"), queryPosts);
+  const toAddCol = collection(firestore, `channels`, `domain`, `${domain.replace("@","")}`, channel, "posts");
   const [value, loading] = useCollection(col)
-  
   const create = async (subject:string, body: string) => {
     try {
-      const docRef = await addDoc(col, {
+      const docRef = await addDoc(toAddCol, {
         subject,
         body,
+        time: serverTimestamp(),
+        originalPost: true,
         userId: user.uid,
         user: {
           name: user.displayName,
           email: user.email,
+          photoURL: user.photoURL,
         }
       });
 
