@@ -1,4 +1,4 @@
-import { addDoc, collection, serverTimestamp, orderBy, query } from "firebase/firestore";
+import { addDoc, collection, serverTimestamp, orderBy, query, where } from "firebase/firestore";
 import { auth, firestore } from "lib/firebase";
 import { useParams } from 'react-router-dom';
 import { useCollection } from 'react-firebase-hooks/firestore';
@@ -10,18 +10,21 @@ export default function useMessage() {
   const params = useParams();
   const domain = params.domain;
   const channel = params.channel;
-  const post = params.post;
+  const post = params.post
   const order = orderBy('time', 'asc');
-  const col = query(collection(firestore, `channels`, `domain`, `${domain.replace("@","")}`, channel, "posts", post, "messages"), order)
-  const addCol = collection(firestore, `channels`, `domain`, `${domain.replace("@","")}`, channel, "posts", post, "messages")
+  const queryMessages = where('originalPost', '==', false);
+  const queryByPost = where('postID', '==', post);
+  const col = query(collection(firestore, `channels`, `domain`, `${domain.replace("@","")}`, channel, "posts"), queryMessages, queryByPost ,order)
+  const addCol = collection(firestore, `channels`, `domain`, `${domain.replace("@","")}`, channel, "posts")
   const [value, loading] = useCollection(col)
-  
   const create = async (text:string, subject: string, channel: string) => {
     try {
       const docRef = await addDoc(addCol, {
-        text,
+        body: text,
         userId: user.uid,
         time: serverTimestamp(),
+        originalPost: false,
+        postID: post,
         subject,
         channel,
         user: {
@@ -39,7 +42,7 @@ export default function useMessage() {
 
   const results = value?.docs?.map(doc => ({
     id: doc.id,
-    text: doc.get("text"),
+    body: doc.get("body"),
     user: doc.get("user")
   }))
 

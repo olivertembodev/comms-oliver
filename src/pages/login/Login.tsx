@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect } from 'react';
 import { styled } from '../../lib/stitches.config';
 import { useNavigate } from 'react-router-dom';
@@ -19,7 +20,6 @@ const Form = styled('form', {
 const Login = () => {
   const navigate = useNavigate();
   const [signInWithGoogle, user, loading] = useSignInWithGoogle(auth);
-
   useEffect(() => {
     if (user?.user) {
       const fetchUser = async () => {
@@ -49,7 +49,7 @@ const Login = () => {
       shortcut: ['l', 'g'],
       keywords: 'Login',
       perform: () => signInWithGoogle(),
-    })
+    }),
   ], [signInWithGoogle]);
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -57,12 +57,11 @@ const Login = () => {
       signInWithGoogle();
     }
   };
-
   return (
     <Wrapper>
       <Form onSubmit={handleSubmit}>
-        <Button disabled inactive type="button">
-          Hit Command+K or L+G to login using google
+        <Button id="login-button" type="button">
+          Hit Command+K to login using google
         </Button>
       </Form>
     </Wrapper>

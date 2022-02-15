@@ -1,17 +1,16 @@
+/* eslint-disable array-callback-return */
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useEffect, useState } from 'react';
+import { useContext, useEffect } from 'react';
 import { styled } from '../lib/stitches.config';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuthState } from 'react-firebase-hooks/auth';
-import {Link} from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { auth } from 'lib/firebase';
 import ChannelList from 'components/ChannelList';
 import { signOut } from 'firebase/auth';
 import useInbox from 'hooks/useInbox';
-import NotificationIcon from '../assets/images/Alarm_Icon.png';
-import useUser from 'hooks/useUser';
-import Button from './shared/Button';
 import { useRegisterActions, createAction } from 'kbar';
+import { GlobalContext } from 'context/GlobalState';
 
 const Wrapper = styled('div', {
   container: 'none',
@@ -29,14 +28,14 @@ const SideBar = styled('div', {
   paddingX: '0px',
   width: '392px',
   borderRight: '1px solid rgba(0, 0, 0, 0.12)',
-})
+});
 const TopBar = styled('div', {
   display: 'flex',
   width: '100%',
   justifyContent: 'space-between',
   alignItems: 'center',
   paddingX: '12px',
-})
+});
 const LinkWrapper = styled('div', {
   width: '100%',
   paddingX: '12px',
@@ -56,22 +55,37 @@ const LinkWrapper = styled('div', {
     color: '$secondary',
   },
   '&:hover': {
-    backgroundColor: 'rgba(0, 0, 0, 0.04)'
+    backgroundColor: 'rgba(0, 0, 0, 0.04)',
+  },
+  variants: {
+    isActiveComponent: {
+      true: {
+        backgroundColor: 'rgba(0,0,0,0.20)',
+      }
+    }
   }
-})
+});
 const Eyebrow = styled('p', {
   fontSize: '16px',
   lineHeight: '24px',
   color: '$secondary',
   margin: 0,
-})
+  padding: '0px 4px',
+  variants: {
+    isActiveComponent: {
+      true: {
+        backgroundColor: 'rgba(0,0,0,0.20)',
+      }
+    }
+  }
+});
 const ChildrenWrapper = styled('div', {
   background: '$primary',
   padding: '24px 0px',
   marginLeft: '392px',
   zIndex: '0',
   width: '100%',
-})
+});
 const InboxCountViewer = styled('div', {
   borderRadius: '50%',
   background: '$danger',
@@ -82,37 +96,19 @@ const InboxCountViewer = styled('div', {
   display: 'flex',
   justifyContent: 'center',
   alignItems: 'center',
-})
-const NotificationsButton = styled('button', {
-  padding: 0,
-  margin: 0,
-  background: 'transparent',
-  border: 'none',
-  cursor: 'pointer',
-})
-const DropDown = styled('div', {
-  position: 'absolute',
-  top: '40px',
-  right: 0,
-  background: '$primary',
-  border: '1px solid $secondary',
-  width: '70%',
-  borderRadius: '8px',
-  padding: '8px 4px',
-  paddingTop: '0px',
-})
-
+});
 export default function Container({ children }) {
   const navigate = useNavigate();
   const params = useParams();
   const domain = params.domain;
+  const {
+    selectedComponent,
+    elementsList,
+    setElementsList,
+    setSelectedComponent,
+  } = useContext(GlobalContext);
   const [user, loading] = useAuthState(auth);
   const { messagesInInbox } = useInbox();
-  const { userDetails, updateNotificationPreferences } = useUser();
-  const [notificationsDropDown ,setNotificationsDropDown] = useState(false);
-  const toggleNotificationsDropDown = () => {
-    setNotificationsDropDown(!notificationsDropDown);
-  }
   useEffect(() => {
     if (!loading && !user) {
       navigate('/');
@@ -127,62 +123,120 @@ export default function Container({ children }) {
     signOut(auth);
     navigate('/');
   };
-  useRegisterActions([
-    createAction({
-      name: 'Goto Inbox',
-      shortcut: ['g', 'i'],
-      keywords: 'inbox',
-      perform: () => navigate(`/${params.domain}/inbox/${user?.uid}`),
-    }),
-    createAction({
-      name: 'Logout',
-      shortcut: ['l', 'o'],
-      keywords: 'logout',
-      perform: () => handleLogout(),
-    }),
-    createAction({
-      name: 'Notifications and Preferences',
-      shortcut: ['n', 'p'],
-      keywords: 'preferences',
-      perform: () => toggleNotificationsDropDown(),
-    }),
-    createAction({
-      name: 'Set notifications to only when mentioned',
-      shortcut: ['n', 'm'],
-      keywords: 'only-when-mentioned',
-      perform: () => updateNotificationPreferences('only when mentioned'),
-    }),
-    createAction({
-      name: 'Set notifications to all posts',
-      shortcut: ['n', 'a'],
-      keywords: 'all-posts',
-      perform: () => updateNotificationPreferences('all posts'),
-    }),
-    createAction({
-      name: 'Go Back',
-      shortcut: ['<'],
-      keywords: 'back',
-      perform: () => navigate(-1),
-    }),
-  ], [user, params, notificationsDropDown, userDetails]);
+  const selectPreviousElement = () => {
+    const indexOfCurrentElement = elementsList.indexOf(selectedComponent);
+    if (indexOfCurrentElement) {
+      setSelectedComponent(elementsList[indexOfCurrentElement - 1]);
+    }
+  }
+  const selecteNextElement = () => {
+    const indexOfCurrentElement = elementsList.indexOf(selectedComponent);
+    if (indexOfCurrentElement > -1 && indexOfCurrentElement < elementsList.length - 1) {
+      setSelectedComponent(elementsList[indexOfCurrentElement + 1]);
+    }
+  }
+  const performSelectedAction = () => {
+    switch (selectedComponent) {
+      case 'container-eyebrow': {
+        navigate(`/${domain}`);
+        break;
+      }
+      case 'inbox-link': {
+        navigate(`/${params.domain}/inbox/${user?.uid}`)
+        break;
+      }
+      default: {
+        if (selectedComponent.includes('channel-')) {
+          navigate(`/${domain}/${selectedComponent.replace('channel-', '')}`);
+        } else if (selectedComponent.includes('inbox-') && selectedComponent.includes('post-')) {
+          const channel = selectedComponent.substring(6, selectedComponent.indexOf('-',6));
+          const domainIndex = selectedComponent.indexOf('-domain-');
+          const postIndex = selectedComponent.indexOf('-post-');
+          const indexIndex = selectedComponent.indexOf('-index-');
+          const domain = selectedComponent.substring(domainIndex + 8, selectedComponent.indexOf('-', postIndex));
+          const post = selectedComponent.substring(postIndex + 6, selectedComponent.indexOf('-', indexIndex))
+          navigate(`/@${domain}/${channel}/${post}`);
+        } else if (selectedComponent.includes('--pid--')) {
+          const postID = selectedComponent.substring(7, selectedComponent.indexOf('-', 7));
+          navigate(`/${params.domain}/${params.channel}/${postID}`);
+        }
+      }
+    }
+  };
+  useRegisterActions(
+    [
+      createAction({
+        name: 'Compose a new message',
+        shortcut: ['c'],
+        keywords: 'compose',
+        perform: () => navigate(`/${domain}/compose`),
+      }),
+      createAction({
+        name: 'Goto Inbox',
+        shortcut: ['g', 'i'],
+        keywords: 'inbox',
+        perform: () => navigate(`/${params.domain}/inbox/${user?.uid}`),
+      }),
+      createAction({
+        name: 'Logout',
+        shortcut: ['l', 'o'],
+        keywords: 'logout',
+        perform: () => handleLogout(),
+      }),
+      createAction({
+        name: 'Go Back',
+        shortcut: ['<'],
+        keywords: 'back',
+        perform: () => navigate(-1),
+      }),
+      createAction({
+        name: 'Previous Item',
+        shortcut: ['p'],
+        keywords: 'previous-item',
+        perform: () => selectPreviousElement(),
+      }),
+      createAction({
+        name: 'Next Item',
+        shortcut: ['n'],
+        keywords: 'next-item',
+        perform: () => selecteNextElement(),
+      }),
+      createAction({
+        name: 'Select current selection',
+        shortcut: ['enter'],
+        keywords: 'Enter',
+        perform: () => performSelectedAction(),
+      })
+    ],
+    [user, params, elementsList, selectedComponent],
+  );
+  useEffect(() => {
+    const elements = [
+      'container-eyebrow',
+      'inbox-link',
+    ];
+    let tempElementsList = elementsList;
+    elements.map((element) => {
+      if (!elementsList.includes(element)) {
+        tempElementsList.push(element);
+      }
+    })
+    setElementsList([...tempElementsList]);
+    if (!selectedComponent || selectedComponent === 'login-button') {
+      setSelectedComponent(tempElementsList[0]);
+    }
+  }, []);
   return (
     <Wrapper>
       <SideBar>
         <TopBar>
-          <Eyebrow>Comms</Eyebrow>
+          <Eyebrow isActiveComponent={selectedComponent === 'container-eyebrow'} id="container-eyebrow">Comms</Eyebrow>
         </TopBar>
-        <LinkWrapper>
-          <Link to={`/${domain}/inbox/${user?.uid}`}>
-            Inbox - <InboxCountViewer>{messagesInInbox ?? '0'}</InboxCountViewer>
+        <LinkWrapper isActiveComponent={selectedComponent === 'inbox-link'}>
+          <Link id="inbox-link" to={`/${domain}/inbox/${user?.uid}`}>
+            Inbox -{' '}
+            <InboxCountViewer>{messagesInInbox ?? '0'}</InboxCountViewer>
           </Link>
-          <NotificationsButton onClick={toggleNotificationsDropDown}>
-            <img src={NotificationIcon} width={28} height={28} alt="Edit notification permissions"/>
-          </NotificationsButton>
-          { notificationsDropDown ?(
-          <DropDown>
-            <Button inactive>Only When Mentioned {userDetails?.notifications === 'only when mentioned' ? ' (selected)' : ''}</Button>
-            <Button inactive>All Posts {userDetails?.notifications === 'all posts' ? ' (selected)' : ''}</Button>
-          </DropDown>) : null}
         </LinkWrapper>
         <ChannelList />
       </SideBar>

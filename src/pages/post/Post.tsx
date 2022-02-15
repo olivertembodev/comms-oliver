@@ -1,14 +1,16 @@
+/* eslint-disable array-callback-return */
+/* eslint-disable react-hooks/exhaustive-deps */
 import { styled } from '../../lib/stitches.config';
 import Container from 'components/Container';
 import { useFormik } from 'formik';
 import usePost from 'hooks/usePost';
 import useSingleChannel from 'hooks/useSingleChannel';
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import Button from 'components/shared/Button';
 import { Form, InputField, TextArea } from 'components/shared/Form';
-import { useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useContext, useEffect, useRef } from 'react';
 import { createAction, useRegisterActions } from 'kbar';
+import { GlobalContext } from 'context/GlobalState';
 
 const Wrapper = styled('div', {
   paddingX: '16px',
@@ -31,18 +33,16 @@ const ListItem = styled('li', {
   margin: 0,
   borderBottom: '1px solid rgba(0, 0, 0, 0.12)',
   padding: '24px 0px',
-  '&:hover': {
-    backgroundColor: 'rgba(0, 0, 0, 0.04)',
-  },
   '& > a': {
     textDecoration: 'none',
   },
   variants: {
-    isSelected: {
+    isActiveComponent: {
       true: {
-        backgroundColor: 'rgba(0, 0, 0, 0.1)',
-      },
-    },
+        backgroundColor: 'rgba(0,0,0,0.20)',
+        borderRadius: '4px',
+      }
+    }
   },
 });
 const ListItemTextWrapper = styled('div', { paddingX: '24px' });
@@ -63,9 +63,9 @@ const SecondaryText = styled('p', {
   textDecoration: 'none',
 });
 export default function Post() {
-  const navigate = useNavigate();
-  const { results, create, domain, channel } = usePost();
-  const [selectedPost, setSelectedPost] = useState(0);
+  const params = useParams();
+  const { results, create, domain, channel, loading } = usePost(params.channel);
+  const { elementsList, selectedComponent, setElementsList, setSelectedComponent } = useContext(GlobalContext);
   const inputRef = useRef(null);
   const { value } = useSingleChannel();
   const { values, handleChange, handleSubmit } = useFormik({
@@ -78,37 +78,8 @@ export default function Post() {
       resetForm();
     },
   });
-  const previousItem = () => {
-    if (selectedPost) {
-      setSelectedPost(selectedPost - 1);
-    }
-  };
-  const nextItem = () => {
-    if (results.length > selectedPost + 1) {
-      setSelectedPost(selectedPost + 1);
-    }
-  };
-  
   useRegisterActions(
     [
-      createAction({
-        name: 'Move to next post',
-        shortcut: ['x'],
-        keywords: 'next',
-        perform: () => nextItem(),
-      }),
-      createAction({
-        name: 'Move to previous post',
-        shortcut: ['z'],
-        keywords: 'previous',
-        perform: () => previousItem(),
-      }),
-      createAction({
-        name: 'Goto Selected Post',
-        shortcut: ['g', 'p'],
-        keywords: 'selected-post',
-        perform: () => results?.length ? navigate(`/${domain}/${channel}/${results[selectedPost].id}`) : null,
-      }),
       createAction({
         name: 'Add a new post',
         shortcut: ['a', 'p'],
@@ -116,8 +87,19 @@ export default function Post() {
         perform: () => inputRef.current.focus(),
       }),
     ],
-    [selectedPost, results],
+    [inputRef],
   );
+  useEffect(() =>{
+    if (results?.length) {
+      let tempElementsList = [...elementsList.filter((item) => !item.includes('-post-') && !item.includes('--pid--'))];
+      results.map((post, index) => {
+          const postID = `--pid--${post.id}-i-${index}`;
+          tempElementsList.push(postID);
+      });
+      setSelectedComponent(tempElementsList[tempElementsList.length - results.length]);
+      setElementsList([...tempElementsList]);
+    }
+  },[loading])
 
   return (
     <Container>
@@ -127,7 +109,7 @@ export default function Post() {
         </Wrapper>
         <List>
           {results.map((item, index) => (
-            <ListItem key={item.id} isSelected={index === selectedPost}>
+            <ListItem key={item.id} isActiveComponent={selectedComponent === `--pid--${item.id}-i-${index}`}>
               <Link to={`/${domain}/${channel}/${item.id}`}>
                 <ListItemTextWrapper>
                   <PrimaryText>{item.subject}</PrimaryText>

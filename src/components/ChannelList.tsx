@@ -1,11 +1,13 @@
+/* eslint-disable array-callback-return */
+/* eslint-disable react-hooks/exhaustive-deps */
 import useChannel from 'hooks/useChannel';
 import { Link } from 'react-router-dom';
 import { styled } from '../lib/stitches.config';
 import { useFormik } from 'formik';
 import { Form, InputField } from './shared/Form';
 import { createAction, useRegisterActions } from 'kbar';
-import { useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useContext, useEffect, useRef } from 'react';
+import { GlobalContext } from 'context/GlobalState';
 
 const Wrapper = styled('div', { paddingY: '16px' });
 const List = styled('ul', {
@@ -19,15 +21,12 @@ const ListItem = styled('li', {
   padding: '6px 24px',
   cursor: 'pointer',
   color: '$secondary',
-  '&:hover': {
-    backgroundColor: 'rgba(0, 0, 0, 0.04)',
-  },
   variants: {
-    isSelected: {
+    isActiveComponent: {
       true: {
-        backgroundColor: 'rgba(0, 0, 0, 0.1)',
-      },
-    },
+        backgroundColor: 'rgba(0,0,0,0.20)',
+      }
+    }
   },
 });
 const HeadingWrapper = styled('p', {
@@ -42,11 +41,10 @@ const HeadingWrapper = styled('p', {
 });
 
 export default function ChannelList() {
-  const navigate = useNavigate();
   const inputRef = useRef(null);
   const containerRef = useRef(null);
-  const { create, results, domain } = useChannel();
-  const [selectedChannel, setSelectedChannel] = useState(0);
+  const { create, results, domain, loading } = useChannel();
+  const { setElementsList, elementsList, selectedComponent } = useContext(GlobalContext);
   const { values, handleSubmit, handleChange } = useFormik({
     initialValues: {
       channel: '',
@@ -54,41 +52,10 @@ export default function ChannelList() {
     onSubmit: (values, { resetForm }) => {
       create(values.channel);
       resetForm();
-      inputRef.current.blur();
     },
   });
-  const nextItem = () => {
-    if (results.length > selectedChannel + 1) {
-      setSelectedChannel(selectedChannel + 1);
-      containerRef.current.scrollTop += 24;
-    }
-  };
-  const previousItem = () => {
-    if (selectedChannel) {
-      setSelectedChannel(selectedChannel - 1);
-      containerRef.current.scrollTop -= 24;
-    }
-  };
   useRegisterActions(
     [
-      createAction({
-        name: 'Move to next channel',
-        shortcut: ['s'],
-        keywords: 'next',
-        perform: () => nextItem(),
-      }),
-      createAction({
-        name: 'Move to previous channel',
-        shortcut: ['w'],
-        keywords: 'previous',
-        perform: () => previousItem(),
-      }),
-      createAction({
-        name: 'Goto Selected Channel',
-        shortcut: ['g', 'c'],
-        keywords: 'channel',
-        perform: () => results?.length ? navigate(`/${domain}/${results[selectedChannel].id}`) : null,
-      }),
       createAction({
         name: 'Add a new channel',
         shortcut: ['a', 'c'],
@@ -96,14 +63,36 @@ export default function ChannelList() {
         perform: () => inputRef.current.focus(),
       }),
     ],
-    [selectedChannel, results, inputRef],
+    [results, inputRef],
   );
+  useEffect(() => {
+    let tempElementsList = [...elementsList];
+    const tempResults = [...results];
+    if (tempResults?.length) {
+        tempResults.map((channel) => {
+          if (!tempElementsList.includes(`channel-${channel.id}`)) {
+            tempElementsList.push(`channel-${channel.id}`);
+          }
+        });
+        if (!tempElementsList.includes('new-channel-input')){
+          tempElementsList.push('new-channel-input');
+        };
+        setElementsList([...tempElementsList]);
+      }
+  }, [loading]);
+  useEffect(() => {
+    if (inputRef?.current && selectedComponent === 'new-channel-input') {
+      inputRef.current.focus();
+    } else {
+      inputRef.current.blur();
+    }
+  }, [inputRef, selectedComponent])
   return (
     <Wrapper>
       <HeadingWrapper>Channels:</HeadingWrapper>
       <List ref={containerRef}>
         {results.map((item, index) => (
-          <ListItem key={item.id} isSelected={index === selectedChannel}>
+          <ListItem key={item.id} isActiveComponent={selectedComponent === `channel-${item.id}`}>
             <Link to={`/${domain}/${item.id}`}>#{item.name}</Link>
           </ListItem>
         ))}
@@ -113,6 +102,7 @@ export default function ChannelList() {
           ref={inputRef}
           placeholder="Input new channel"
           name="channel"
+          id="new-channel-input"
           required
           onChange={handleChange}
           value={values.channel}

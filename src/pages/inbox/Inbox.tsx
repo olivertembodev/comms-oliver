@@ -1,12 +1,14 @@
+/* eslint-disable array-callback-return */
 /* eslint-disable react-hooks/exhaustive-deps */
 import { styled } from '../../lib/stitches.config';
 import Container from 'components/Container';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import Button from 'components/shared/Button';
 import useInbox from 'hooks/useInbox';
 import { mentionsTextParser } from 'lib';
-import { useEffect, useState } from 'react';
+import { useContext, useEffect } from 'react';
 import { createAction, useRegisterActions } from 'kbar';
+import { GlobalContext } from 'context/GlobalState';
 
 const Wrapper = styled('div', { paddingX: '16px' });
 const Heading3 = styled('h3', {
@@ -28,18 +30,16 @@ const ListItem = styled('li', {
   listStyle: 'none',
   borderBottom: '1px solid rgba(0, 0, 0, 0.12)',
   padding: '24px 0px',
-  '&:hover': {
-    backgroundColor: 'rgba(0, 0, 0, 0.04)',
-  },
   '& > a': {
     textDecoration: 'none',
   },
   variants: {
-    isSelected: {
+    isActiveComponent: {
       true: {
-        backgroundColor: 'rgba(0, 0, 0, 0.1)',
-      },
-    },
+        backgroundColor: 'rgba(0,0,0,0.20)',
+        borderRadius: '4px',
+      }
+    }
   },
 });
 const ListItemTextWrapper = styled('div', {
@@ -109,48 +109,26 @@ const ButtonsWrapper = styled('div', {
 
 export default function Inbox() {
   const { inbox, markMessageAsDone, loading } = useInbox();
-  const [selectedInboxItem, setSelectedInboxItem] = useState(0);
-  const navigate = useNavigate();
-  const nextItem = () => {
-    if (inbox.length > selectedInboxItem + 1) {
-      setSelectedInboxItem(selectedInboxItem + 1);
-    }
-  }
-  const previousItem = () => {
-    if (selectedInboxItem) {
-      setSelectedInboxItem(selectedInboxItem - 1);
-    }
-  }
+  const { selectedComponent, elementsList, setElementsList, setSelectedComponent } = useContext(GlobalContext);
   useRegisterActions([
-    createAction({
-      name: 'Move to next message',
-      shortcut: ['j'],
-      keywords: 'next',
-      perform: () => nextItem(),
-    }),
-    createAction({
-      name: 'Move to previous message',
-      shortcut: ['k'],
-      keywords: 'previous',
-      perform: () => previousItem(),
-    }),
-    createAction({
-      name: 'Go to post',
-      shortcut: ['>'],
-      keywords: 'post',
-      perform: () => inbox.length ?  navigate(`/@${inbox[selectedInboxItem].domain}/${inbox[selectedInboxItem].channel}/${inbox[selectedInboxItem].post}`) : null,
-    }),
     createAction({
       name: 'Mark as done',
       shortcut: ['e'],
       keywords: 'post',
       perform: () => {
-        markMessageAsDone(inbox[selectedInboxItem], selectedInboxItem);
+        markMessageAsDone();
       },
     }),
-  ], [selectedInboxItem, inbox]);
+  ], [inbox, selectedComponent]);
   useEffect(() => {
-    setSelectedInboxItem(inbox.length - 1);
+      let tempElementsList = [...elementsList.filter((item) => !item.includes('-post-') && !item.includes('--pid--'))];
+      inbox.map((message, index) => {
+          tempElementsList.push(`inbox-${message.channel}-domain-${message.domain}-post-${message.post}-index-${index}`);
+      });
+      if (inbox.length) {
+        setSelectedComponent(tempElementsList[tempElementsList.length - inbox.length]);
+      }
+      setElementsList([...tempElementsList]);
   }, [inbox]);
   return (
     <Container>
@@ -163,7 +141,7 @@ export default function Inbox() {
             inbox.map((item, index) => {
               if (item.isDone) return null;
               return (
-                <ListItem key={index} isSelected={index === selectedInboxItem}>
+                <ListItem key={index} isActiveComponent={selectedComponent === `inbox-${item.channel}-domain-${item.domain}-post-${item.post}-index-${index}`}>
                   <Link to={`/@${item.domain}/${item.channel}/${item.post}`}>
                     <ListItemTextWrapper>
                       <ListWrapper>
