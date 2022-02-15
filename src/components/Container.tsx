@@ -1,6 +1,6 @@
 /* eslint-disable array-callback-return */
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect } from 'react';
 import { styled } from '../lib/stitches.config';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuthState } from 'react-firebase-hooks/auth';
@@ -9,9 +9,6 @@ import { auth } from 'lib/firebase';
 import ChannelList from 'components/ChannelList';
 import { signOut } from 'firebase/auth';
 import useInbox from 'hooks/useInbox';
-import NotificationIcon from '../assets/images/Alarm_Icon.png';
-import useUser from 'hooks/useUser';
-import Button from './shared/Button';
 import { useRegisterActions, createAction } from 'kbar';
 import { GlobalContext } from 'context/GlobalState';
 
@@ -100,32 +97,6 @@ const InboxCountViewer = styled('div', {
   justifyContent: 'center',
   alignItems: 'center',
 });
-const NotificationsButton = styled('button', {
-  padding: '2px',
-  margin: 0,
-  background: 'transparent',
-  border: 'none',
-  cursor: 'pointer',
-  variants: {
-    isActiveComponent: {
-      true: {
-        backgroundColor: 'rgba(0,0,0,0.20)',
-      }
-    }
-  }
-});
-const DropDown = styled('div', {
-  position: 'absolute',
-  top: '40px',
-  right: 0,
-  background: '$primary',
-  border: '1px solid $secondary',
-  width: '70%',
-  borderRadius: '8px',
-  padding: '8px 4px',
-  paddingTop: '0px',
-});
-
 export default function Container({ children }) {
   const navigate = useNavigate();
   const params = useParams();
@@ -138,11 +109,6 @@ export default function Container({ children }) {
   } = useContext(GlobalContext);
   const [user, loading] = useAuthState(auth);
   const { messagesInInbox } = useInbox();
-  const { userDetails, updateNotificationPreferences } = useUser();
-  const [notificationsDropDown, setNotificationsDropDown] = useState(false);
-  const toggleNotificationsDropDown = () => {
-    setNotificationsDropDown(!notificationsDropDown);
-  };
   useEffect(() => {
     if (!loading && !user) {
       navigate('/');
@@ -161,26 +127,12 @@ export default function Container({ children }) {
     const indexOfCurrentElement = elementsList.indexOf(selectedComponent);
     if (indexOfCurrentElement) {
       setSelectedComponent(elementsList[indexOfCurrentElement - 1]);
-      if (elementsList[indexOfCurrentElement - 1] === 'notifications-only-when-mentioned' || elementsList[indexOfCurrentElement - 1] === 'notifications-all-posts') {
-        if (!notificationsDropDown) {
-          toggleNotificationsDropDown();          
-        }
-      } else {
-        setNotificationsDropDown(false);
-      }
     }
   }
   const selecteNextElement = () => {
     const indexOfCurrentElement = elementsList.indexOf(selectedComponent);
     if (indexOfCurrentElement > -1 && indexOfCurrentElement < elementsList.length - 1) {
       setSelectedComponent(elementsList[indexOfCurrentElement + 1]);
-      if (elementsList[indexOfCurrentElement + 1] === 'notifications-only-when-mentioned' || elementsList[indexOfCurrentElement + 1] === 'notifications-all-posts') {
-        if (!notificationsDropDown) {
-          toggleNotificationsDropDown();          
-        }
-      } else {
-        setNotificationsDropDown(false);
-      }
     }
   }
   const performSelectedAction = () => {
@@ -192,18 +144,6 @@ export default function Container({ children }) {
       case 'inbox-link': {
         navigate(`/${params.domain}/inbox/${user?.uid}`)
         break;
-      }
-      case 'notifications-toggle': {
-        toggleNotificationsDropDown();
-        break;
-      }
-      case 'notifications-only-when-mentioned': {
-        updateNotificationPreferences('only when mentioned');
-        return;
-      }
-      case 'notifications-all-posts': {
-        updateNotificationPreferences('all posts');
-        return;
       }
       default: {
         if (selectedComponent.includes('channel-')) {
@@ -244,24 +184,6 @@ export default function Container({ children }) {
         perform: () => handleLogout(),
       }),
       createAction({
-        name: 'Notifications and Preferences',
-        shortcut: ['r'],
-        keywords: 'preferences',
-        perform: () => toggleNotificationsDropDown(),
-      }),
-      createAction({
-        name: 'Set notifications to only when mentioned',
-        shortcut: ['m', 'n'],
-        keywords: 'only-when-mentioned',
-        perform: () => updateNotificationPreferences('only when mentioned'),
-      }),
-      createAction({
-        name: 'Set notifications to all posts',
-        shortcut: ['a', 'n'],
-        keywords: 'all-posts',
-        perform: () => updateNotificationPreferences('all posts'),
-      }),
-      createAction({
         name: 'Go Back',
         shortcut: ['<'],
         keywords: 'back',
@@ -286,15 +208,12 @@ export default function Container({ children }) {
         perform: () => performSelectedAction(),
       })
     ],
-    [user, params, notificationsDropDown, userDetails, elementsList, selectedComponent],
+    [user, params, elementsList, selectedComponent],
   );
   useEffect(() => {
     const elements = [
       'container-eyebrow',
       'inbox-link',
-      'notifications-toggle',
-      'notifications-only-when-mentioned',
-      'notifications-all-posts',
     ];
     let tempElementsList = elementsList;
     elements.map((element) => {
@@ -318,34 +237,6 @@ export default function Container({ children }) {
             Inbox -{' '}
             <InboxCountViewer>{messagesInInbox ?? '0'}</InboxCountViewer>
           </Link>
-          <NotificationsButton
-            id="notifications-toggle"
-            isActiveComponent={selectedComponent === 'notifications-toggle'}
-            onClick={toggleNotificationsDropDown}
-          >
-            <img
-              src={NotificationIcon}
-              width={28}
-              height={28}
-              alt="Edit notification permissions"
-            />
-          </NotificationsButton>
-          {notificationsDropDown ? (
-            <DropDown>
-              <Button id="notifications-only-when-mentioned" inactive isActiveComponent={selectedComponent === 'notifications-only-when-mentioned'}>
-                Only When Mentioned{' '}
-                {userDetails?.notifications === 'only when mentioned'
-                  ? ' (selected)'
-                  : ''}
-              </Button>
-              <Button id="notifications-all-posts" inactive isActiveComponent={selectedComponent === 'notifications-all-posts'}>
-                All Posts{' '}
-                {userDetails?.notifications === 'all posts'
-                  ? ' (selected)'
-                  : ''}
-              </Button>
-            </DropDown>
-          ) : null}
         </LinkWrapper>
         <ChannelList />
       </SideBar>

@@ -19,7 +19,11 @@ exports.sendNotificationToUsers = functions.firestore
       .get()
       .then((users: { docs: [] }) => {
         users.docs.forEach(
-          (user: { data: Function; id: string, }) => {
+          async (user: { data: Function; id: string, }) => {
+            const [notificationPreference] = await Promise.all([
+              db.collection(`users/${user.id}/notifications`).doc(newValue.originalPost ? params.postId : newValue.postID).get(),
+            ]);
+            console.log(notificationPreference.data(), '<==notification data for', user.id);
             if (newValue.userId !== user.id) {
               const { mentions } = mentionsTextParser(newValue.body);
               let isReponseRequested = false;
