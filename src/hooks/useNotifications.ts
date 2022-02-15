@@ -13,7 +13,7 @@ export default function useNotifications() {
   const userDoc = doc(firestore, `users`, `${user?.uid ?? 'user'}`, 'notifications', post );
   const [value, loading] = useDocument(userDoc);  
   useEffect(() => {
-       if (!value?.exists()) {
+    if (value?.id && !value.exists() && user?.uid) {
             setDoc(userDoc, {
                status: 'only when mentioned'
            });

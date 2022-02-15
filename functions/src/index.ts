@@ -13,17 +13,16 @@ exports.sendNotificationToUsers = functions.firestore
     const { params } = context;
     const newValue = snap.data();
     const writeBatch = db.batch();
+    const randomDelay = () => new Promise(resolve => setTimeout(resolve, Math.random() * 100));
     await db
       .collection('users')
       .where('domain', '==', params.domainId)
       .get()
-      .then((users: { docs: [] }) => {
-        users.docs.forEach(
+      .then(async (users: { docs: [] }) => {
+        const usersBatch = users.docs.map(
           async (user: { data: Function; id: string, }) => {
-            const [notificationPreference] = await Promise.all([
-              db.collection(`users/${user.id}/notifications`).doc(newValue.originalPost ? params.postId : newValue.postID).get(),
-            ]);
-            console.log(notificationPreference.data(), '<==notification data for', user.id);
+            const notificationPreference = await db.collection(`users/${user.id}/notifications`).doc(newValue.originalPost ? params.postId : newValue.postID).get();
+            randomDelay();
             if (newValue.userId !== user.id) {
               const { mentions } = mentionsTextParser(newValue.body);
               let isReponseRequested = false;
@@ -59,12 +58,13 @@ exports.sendNotificationToUsers = functions.firestore
                 isDone: false,
                 isMentioned: isMentioned,
               };
-              if (user.data().notifications === 'all posts' || (isMentioned && user.data().notifications === 'only when mentioned') || isReponseRequested) {
+              if (notificationPreference?.data()?.status === 'all posts' || isMentioned || isReponseRequested) {
                 writeBatch.create(inboxRef, notification);
               }
             }
           },
         );
+        await Promise.all(usersBatch);
         writeBatch.commit().then(() => {
           console.log('Successfully sent notifications.');
         });

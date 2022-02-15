@@ -22,6 +22,8 @@ const Button = styled('button', {
     danger: {
       true: {
         backgroundColor: '$danger',
+        color: '$primary',
+        border: 'none',
       },
     },
     inactive: {
